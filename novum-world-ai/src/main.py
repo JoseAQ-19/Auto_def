@@ -21,11 +21,23 @@ class NovumDirector:
         scanner = DataScanner()
         top_url = scanner.get_top_article()
         prompt_guion = scanner.compose_prompt_for_script(top_url)
-        
-        logger.info(f"Generando script del día inspirado en GSC...\nPrompt: {prompt_guion}")
+        # GSD: Next step would be sending this prompt to an LLM (Groq/OpenAI) to return JSON.
+        # For now, we simulate the LLM structured JSON output.
+        logger.info(f"Simulando Cerebro LLM. Prompt puente: {prompt_guion}")
         
         return [
-            {"type": "dialogue", "text": "¡Hola a todos! Bienvenidos a Novum World. Este es mi primer video totalmente automatizado. ¡Hasta mañana!"}
+            {
+                "type": "podcast", 
+                "text": "¡Alarma de ciberseguridad! Hoy destapamos un escándalo."
+            },
+            {
+                "type": "action", 
+                "prompt": "Cinematic zoom in to a dark room with green hacker code falling on screens, glowing neon, 4k"
+            },
+            {
+                "type": "podcast", 
+                "text": "Protege tus datos, y recuerda: la información es poder. ¡Hasta mañana!"
+            }
         ]
 
     def process_scene(self, scene: dict, master_image_path: str, index: int) -> str:
@@ -35,7 +47,7 @@ class NovumDirector:
         scene_type = scene.get("type")
         output_video_path = f"scene_{index}.mp4"
 
-        if scene_type == "dialogue":
+        if scene_type == "podcast" or scene_type == "dialogue":
             text = scene.get("text", "")
             logger.info(f"Procesando escena de diálogo [{index}]: {text}")
             audio_path = f"scene_{index}.mp3"
