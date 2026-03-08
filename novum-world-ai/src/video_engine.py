@@ -35,8 +35,7 @@ class VideoEngine:
                 audio_path=handle_file(audio_path),
                 prompt="A realistic person speaking naturally",
                 negative_prompt="low quality, bad anatomy, worst quality, distorted",
-                seed="-1",
-                video_duration=5.0,
+                seed=-1,  # Passing as int in case string is rejected by Space
                 api_name="/generate"
             )
             # El client.predict guarda el archivo devuelto en un /tmp/ local y devuelve la ruta
@@ -66,14 +65,14 @@ class VideoEngine:
                 first_frame=handle_file(master_image_path),
                 end_frame=handle_file(master_image_path),
                 prompt=text_prompt,
-                audio_path=None,
-                duration=5.0,
+                duration=6.0,
                 enhance_prompt=False,
                 generation_mode="i2v",
                 height="720",
                 width="1280",
                 randomize_seed=True,
                 seed=-1,
+                audio_path=handle_file(audio_path) if audio_path else None,
                 api_name="/generate_video"
             )
             os.rename(result, output_path)
