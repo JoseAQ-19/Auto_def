@@ -1,0 +1,48 @@
+name: Daily Video Production Workflow
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # Ajustar según el timezone deseado, por ejemplo: todos los días a las 10:00 UTC
+  workflow_dispatch: # Modo manual
+
+jobs:
+  run-daily-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js (Requerido para GSC MCP)
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          
+      - name: Instalar FFmpeg (Sistema)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar script de producción
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          HF_TOKEN_PODCAST: ${{ secrets.HF_TOKEN_PODCAST }}
+          HF_TOKEN_ACTION: ${{ secrets.HF_TOKEN_ACTION }}
+          HF_SPACE_PODCAST_URL: ${{ secrets.HF_SPACE_PODCAST_URL }}
+          HF_SPACE_ACTION_URL: ${{ secrets.HF_SPACE_ACTION_URL }}
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+        run: python src/main.py
+
+      # Opcional: Subir el resultado a github artifacts para comprobar que salió bien si la subida por API falla
+      - name: Subir como artifact (Backup)
+        uses: actions/upload-artifact@v3
+        with:
+          name: daily-video
+          path: final_video.mp4
+          retention-days: 2

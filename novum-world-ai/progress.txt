@@ -1,0 +1,8 @@
+# GSD Progress Tracker
+[ ] Initialization & Planning
+[x] Component: Data Scanner (GSC MCP) + Test
+[x] Component: Audio Engine + Test
+[x] Component: Video Engine + Test
+[x] Component: Orquestador (main.py) + Test
+[x] Component: GitHub Action Workflow
+[x] Assembly & Integration

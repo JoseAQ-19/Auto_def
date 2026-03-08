@@ -1,0 +1,5 @@
+requests==2.31.0
+gradio-client==0.16.1
+moviepy==1.0.3
+composio-core==0.5.5
+mcp==1.2.0
