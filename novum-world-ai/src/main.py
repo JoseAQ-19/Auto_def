@@ -42,11 +42,11 @@ class NovumDirector:
             text = scene.get("text", "")
             logger.info(f"Procesando escena de diálogo [{index}]: {text}")
             audio_path = f"scene_{index}.mp3"
-            self.audio_engine.generate_audio(text, output_path=audio_path)
+            actual_audio_path = self.audio_engine.generate_audio(text, output_path=audio_path)
             
             # Generar vídeo mediante el podcast studio
             return self.video_engine.generate_podcast_video(
-                audio_path=audio_path,
+                audio_path=actual_audio_path,
                 master_image_path=master_image_path,
                 output_path=output_video_path
             )

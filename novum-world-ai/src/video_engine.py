@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 class VideoEngine:
     def __init__(self):
         # Tokens y URLs para los dos espacios Hugging Face
-        self.podcast_url = os.environ.get("HF_SPACE_PODCAST_URL")
-        self.action_url = os.environ.get("HF_SPACE_ACTION_URL")
-        self.podcast_token = os.environ.get("HF_TOKEN_PODCAST")
-        self.action_token = os.environ.get("HF_TOKEN_ACTION")
+        self.podcast_url = (os.environ.get("HF_SPACE_PODCAST_URL") or "").strip()
+        self.action_url = (os.environ.get("HF_SPACE_ACTION_URL") or "").strip()
+        self.podcast_token = (os.environ.get("HF_TOKEN_PODCAST") or "").strip()
+        self.action_token = (os.environ.get("HF_TOKEN_ACTION") or "").strip()
 
         if not self.podcast_url or not self.action_url or not self.podcast_token or not self.action_token:
             logger.warning("Faltan credenciales de Hugging Face. Las conexiones podrían fallar.")
@@ -33,10 +33,10 @@ class VideoEngine:
             result = client.predict(
                 image_path=handle_file(master_image_path),
                 audio_path=handle_file(audio_path),
-                prompt="",
-                negative_prompt="",
+                prompt="A realistic person speaking naturally",
+                negative_prompt="low quality, bad anatomy, worst quality, distorted",
                 seed="-1",
-                video_duration=10.0,
+                video_duration=5.0,
                 api_name="/generate"
             )
             # El client.predict guarda el archivo devuelto en un /tmp/ local y devuelve la ruta
@@ -66,7 +66,7 @@ class VideoEngine:
                 first_frame=handle_file(master_image_path),
                 end_frame=handle_file(master_image_path),
                 prompt=text_prompt,
-                audio_path="",
+                audio_path=None,
                 duration=5.0,
                 enhance_prompt=False,
                 generation_mode="i2v",

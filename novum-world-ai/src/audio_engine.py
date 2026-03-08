@@ -15,8 +15,11 @@ class AudioEngine:
     def generate_audio(self, text: str, voice_id: str = "qUPtETgSYRhCRb2pfOla", output_path: str = "output.mp3") -> str:
         """
         Llama a ElevenLabs para generar audio a partir del texto y lo guarda en output_path.
-        Retorna la ruta del archivo generado.
+        Retorna la ruta del archivo generado. Si output_path termina en .wav, se convierte internamente.
         """
+        if not output_path.endswith(".wav"):
+            output_path = output_path.replace(".mp3", ".wav")
+            
         url = f"{self.base_url}/{voice_id}"
         headers = {
             "Accept": "audio/mpeg",
@@ -37,11 +40,22 @@ class AudioEngine:
             response = requests.post(url, json=data, headers=headers)
             response.raise_for_status()
             
-            with open(output_path, "wb") as f:
+            tmp_mp3 = output_path + ".tmp.mp3"
+            with open(tmp_mp3, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
-            logger.info(f"Audio guardado correctamente en: {output_path}")
+            
+            # Convertir a wav si el sistema lo soporta (en Github Actions instalamos ffmpeg)
+            import subprocess
+            try:
+                subprocess.run(["ffmpeg", "-i", tmp_mp3, output_path, "-y"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                os.remove(tmp_mp3)
+                logger.info(f"Audio guardado y convertido correctamente en: {output_path}")
+            except Exception as e:
+                logger.warning(f"No se pudo convertir a wav: {e}. Renombrando a mp3...")
+                os.rename(tmp_mp3, output_path)
+
             return output_path
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 402 and voice_id != "pNInz6obpgDQGcFmaJgB":
