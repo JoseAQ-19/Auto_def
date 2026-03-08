@@ -39,6 +39,7 @@ jobs:
           HF_SPACE_ACTION_URL: ${{ secrets.HF_SPACE_ACTION_URL }}
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+          HF_TOKEN_CEREBRO: ${{ secrets.HF_TOKEN_CEREBRO }}
         run: python src/main.py
 
       # Opcional: Subir el resultado a github artifacts para comprobar que salió bien si la subida por API falla

@@ -28,9 +28,13 @@ class NovumDirector:
         
         logger.info(f"Conectando al Cerebro LLM. Prompt puente: {prompt_guion}")
 
-        api_key = os.getenv("GROQ_API_KEY", "")
+        api_key = os.getenv("HF_TOKEN_CEREBRO", "")
         if not api_key:
-            logger.warning("GROQ_API_KEY no encontrada. Usando guion de respaldo.")
+            # Fallback legacy check
+            api_key = os.getenv("GROQ_API_KEY", "")
+            
+        if not api_key:
+            logger.warning("HF_TOKEN_CEREBRO no encontrada. Usando guion de respaldo.")
             return [
                 {
                     "type": "podcast", 
@@ -54,16 +58,18 @@ Formatos permitidos en el array:
 Asegúrate de que haya consistencia y no devuelvas NADA MÁS que el JSON (sin backticks ni markdown).'''
 
         try:
+            logger.info("Realizando petición a Hugging Face Inference API (Cerebro)...")
             response = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
+                "https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={
-                    "model": "llama-3.3-70b-versatile",
+                    "model": "meta-llama/Llama-3.3-70B-Instruct",
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_guion}
                     ],
-                    "temperature": 0.7
+                    "temperature": 0.7,
+                    "max_tokens": 1000
                 }
             )
             response.raise_for_status()
