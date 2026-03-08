@@ -1,0 +1,7 @@
+# Novum World - GSD Progress Track
+
+## Trinity Architecture Migration
+- [ ] Fase 1: The Brain (Content-Creator)
+- [ ] Fase 2: The Sets (Production)
+- [ ] Fase 3: The Assembly (Final Cut)
+- [ ] Refactorización de GitHub Actions
