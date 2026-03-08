@@ -1,5 +1,6 @@
 import os
 import logging
+import shutil
 from gradio_client import Client, handle_file
 
 logging.basicConfig(level=logging.INFO)
@@ -26,27 +27,25 @@ class VideoEngine:
         logger.info(f"Conectando al Estudio A (Podcast): {self.podcast_url}")
         client = Client(self.podcast_url, token=self.podcast_token)
         
-        # Asumimos que los parámetros del gradio client del modelo lip-sync son: imagen maestra, audio.
-        # Ajustar los predict endpoints según la API expuesta por el Space concreto.
         logger.info(f"Enviando imagen {master_image_path} y audio {audio_path}...")
         try:
+            # Normalización de parámetros según auditoría
             result = client.predict(
                 image_path=handle_file(master_image_path),
                 audio_path=handle_file(audio_path),
                 prompt="A realistic person speaking naturally",
                 negative_prompt="low quality, bad anatomy, worst quality, distorted",
-                seed="-1",
+                seed="0", # Auditor sugiere evitar -1 en algunos validadores
                 video_duration=5.0,
                 api_name="/generate"
             )
-            # El client.predict en algunos Spaces devuelve una tupla (video_path, metadata, etc.)
             video_file = result[0] if isinstance(result, (tuple, list)) else result
-            os.rename(video_file, output_path)
+            shutil.move(video_file, output_path)
             logger.info(f"Vídeo de podcast generado exitosamente en: {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Error en Estudio A (Podcast): {e}")
-            try: logger.error(f"Endpoints Podcast: {client.endpoints}")
+            try: logger.info(f"API Debug Podcast:\n{client.view_api(return_format='str')}")
             except: pass
             raise
 
@@ -60,9 +59,9 @@ class VideoEngine:
         logger.info(f"Conectando al Estudio B (Acción): {self.action_url}")
         client = Client(self.action_url, token=self.action_token)
         
-        # Asumimos que los parámetros del gradio client son: prompt visual, imagen maestra.
         logger.info(f"Enviando imagen {master_image_path} y prompt '{text_prompt}'...")
         try:
+            # Normalización estricta por auditoría
             result = client.predict(
                 first_frame=handle_file(master_image_path),
                 end_frame=handle_file(master_image_path),
@@ -77,11 +76,11 @@ class VideoEngine:
                 api_name="/generate_video"
             )
             video_file = result[0] if isinstance(result, (tuple, list)) else result
-            os.rename(video_file, output_path)
+            shutil.move(video_file, output_path)
             logger.info(f"Vídeo de acción generado exitosamente en: {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Error en Estudio B (Acción): {e}")
-            try: logger.error(f"Endpoints Acción: {client.endpoints}")
+            try: logger.info(f"API Debug Acción:\n{client.view_api(return_format='str')}")
             except: pass
             raise
