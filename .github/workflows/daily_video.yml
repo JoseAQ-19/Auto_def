@@ -26,9 +26,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Instalar dependencias
+        working-directory: ./novum-world-ai
         run: pip install -r requirements.txt
 
       - name: Ejecutar script de producción
+        working-directory: ./novum-world-ai
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           HF_TOKEN_PODCAST: ${{ secrets.HF_TOKEN_PODCAST }}
@@ -44,5 +46,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: daily-video
-          path: final_video.mp4
+          path: novum-world-ai/final_video.mp4
           retention-days: 2
