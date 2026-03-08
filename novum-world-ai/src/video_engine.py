@@ -38,8 +38,9 @@ class VideoEngine:
                 seed=-1,  # Passing as int in case string is rejected by Space
                 api_name="/generate"
             )
-            # El client.predict guarda el archivo devuelto en un /tmp/ local y devuelve la ruta
-            os.rename(result, output_path)
+            # El client.predict en algunos Spaces devuelve una tupla (video_path, metadata, etc.)
+            video_file = result[0] if isinstance(result, (tuple, list)) else result
+            os.rename(video_file, output_path)
             logger.info(f"Vídeo de podcast generado exitosamente en: {output_path}")
             return output_path
         except Exception as e:
@@ -72,10 +73,10 @@ class VideoEngine:
                 width="1280",
                 randomize_seed=True,
                 seed=-1,
-                audio_path=handle_file(audio_path) if audio_path else None,
                 api_name="/generate_video"
             )
-            os.rename(result, output_path)
+            video_file = result[0] if isinstance(result, (tuple, list)) else result
+            os.rename(video_file, output_path)
             logger.info(f"Vídeo de acción generado exitosamente en: {output_path}")
             return output_path
         except Exception as e:
