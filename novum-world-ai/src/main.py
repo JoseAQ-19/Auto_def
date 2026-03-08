@@ -1,7 +1,7 @@
 import os
 import logging
-from .audio_engine import AudioEngine
-from .video_engine import VideoEngine
+from audio_engine import AudioEngine
+from video_engine import VideoEngine
 # Importaremos os.system o subprocess para FFmpeg más adelante si es necesario,
 # por ahora hacemos el scaffold de la orquestación.
 
@@ -17,7 +17,7 @@ class NovumDirector:
         """
         [Actualizado] Devuelve el script generado basado en data_scan.
         """
-        from .data_scanner import DataScanner
+        from data_scanner import DataScanner
         scanner = DataScanner()
         top_url = scanner.get_top_article()
         prompt_guion = scanner.compose_prompt_for_script(top_url)
