@@ -5,6 +5,10 @@ on:
     - cron: "0 10 * * *"
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   run-brain:
     runs-on: ubuntu-latest
