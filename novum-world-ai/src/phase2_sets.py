@@ -11,7 +11,25 @@ logger = logging.getLogger(__name__)
 class Phase2Sets:
     def __init__(self):
         self.video_engine = VideoEngine()
-        self.plan_path = os.path.join(os.path.dirname(__file__), "..", "shooting_plan.json")
+        
+        # Búsqueda robusta del plan de rodaje (Trinity Architecture Support)
+        possible_paths = [
+            os.path.join(os.path.dirname(__file__), "..", "shooting_plan.json"),
+            os.path.join(os.getcwd(), "shooting_plan.json"),
+            os.path.join(os.getcwd(), "novum-world-ai", "shooting_plan.json"),
+            "shooting_plan.json"
+        ]
+        
+        self.plan_path = None
+        for p in possible_paths:
+            if os.path.exists(p):
+                self.plan_path = p
+                logger.info(f"🎯 Plan de rodaje localizado en: {p}")
+                break
+        
+        if not self.plan_path:
+            self.plan_path = possible_paths[0] # Fallback para reporte de error consistente
+            
         self.podcast_repo_id = os.environ.get("HF_SPACE_PODCAST_URL", "").replace("https://huggingface.co/spaces/", "").replace("https://joseaq-video-podcast.hf.space/", "JoseAQ/video-podcast").strip("/") or "JoseAQ/video-podcast"
         self.action_repo_id = os.environ.get("HF_SPACE_ACTION_URL", "").replace("https://huggingface.co/spaces/", "").replace("https://joseaq-video-action.hf.space/", "JoseAQ/video-action").strip("/") or "JoseAQ/video-action"
 

@@ -75,10 +75,12 @@ class VideoEngine:
                 seed=0,
                 api_name="/generate_video"
             )
+            import shutil
             video_file = result[0] if isinstance(result, (tuple, list)) else result
             shutil.move(video_file, output_path)
-            logger.info(f"Vídeo de acción generado exitosamente en: {output_path}")
+            logger.info(f"✅ Vídeo de acción generado y movido a: {output_path}")
             return output_path
+
         except Exception as e:
             logger.error(f"Error en Estudio B (Acción): {e}")
             try: logger.info(f"API Debug Acción:\n{client.view_api(return_format='str')}")
