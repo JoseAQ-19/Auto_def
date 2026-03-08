@@ -33,6 +33,10 @@ class VideoEngine:
             result = client.predict(
                 image_path=handle_file(master_image_path),
                 audio_path=handle_file(audio_path),
+                prompt="",
+                negative_prompt="",
+                seed="-1",
+                video_duration=10.0,
                 api_name="/generate"
             )
             # El client.predict guarda el archivo devuelto en un /tmp/ local y devuelve la ruta
@@ -59,9 +63,17 @@ class VideoEngine:
         logger.info(f"Enviando imagen {master_image_path} y prompt '{text_prompt}'...")
         try:
             result = client.predict(
-                prompt=text_prompt,
                 first_frame=handle_file(master_image_path),
                 end_frame=handle_file(master_image_path),
+                prompt=text_prompt,
+                audio_path="",
+                duration=5.0,
+                enhance_prompt=False,
+                generation_mode="i2v",
+                height="720",
+                width="1280",
+                randomize_seed=True,
+                seed=-1,
                 api_name="/generate_video"
             )
             os.rename(result, output_path)
