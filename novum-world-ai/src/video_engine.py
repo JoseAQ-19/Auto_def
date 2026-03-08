@@ -69,8 +69,8 @@ class VideoEngine:
                 duration=6.0,
                 enhance_prompt=False,
                 generation_mode="i2v",
-                height="720",
-                width="1280",
+                height=720,
+                width=1280,
                 randomize_seed=True,
                 seed=0,
                 api_name="/generate_video"
