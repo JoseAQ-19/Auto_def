@@ -1,12 +1,12 @@
-name: Daily Video Production Workflow
+name: "1. The Brain (Content-Creator)"
 
 on:
   schedule:
-    - cron: "0 10 * * *" # Ajustar según el timezone deseado, por ejemplo: todos los días a las 10:00 UTC
-  workflow_dispatch: # Modo manual
+    - cron: "0 10 * * *"
+  workflow_dispatch:
 
 jobs:
-  run-daily-production:
+  run-brain:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          
+
       - name: Instalar FFmpeg (Sistema)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
@@ -29,23 +29,21 @@ jobs:
         working-directory: ./novum-world-ai
         run: pip install -r requirements.txt
 
-      - name: Ejecutar script de producción
+      - name: Ejecutar FASE 1 - The Brain
         working-directory: ./novum-world-ai
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVEN_LABS_API_KEY }}
-          HF_TOKEN_PODCAST: ${{ secrets.HF_TOKEN_PODCAST }}
-          HF_TOKEN_ACTION: ${{ secrets.HF_TOKEN_ACTION }}
-          HF_SPACE_PODCAST_URL: ${{ secrets.HF_SPACE_PODCAST_URL }}
-          HF_SPACE_ACTION_URL: ${{ secrets.HF_SPACE_ACTION_URL }}
+          HF_TOKEN_CEREBRO: ${{ secrets.HF_TOKEN_CEREBRO }}
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
-          HF_TOKEN_CEREBRO: ${{ secrets.HF_TOKEN_CEREBRO }}
-        run: python src/main.py
+        run: python src/phase1_brain.py
 
-      # Opcional: Subir el resultado a github artifacts para comprobar que salió bien si la subida por API falla
-      - name: Subir como artifact (Backup)
+      - name: Subir Artifacts de la Idea
         uses: actions/upload-artifact@v4
         with:
-          name: daily-video
-          path: novum-world-ai/final_video.mp4
-          retention-days: 2
+          name: brain-artifacts
+          path: |
+            novum-world-ai/shooting_plan.json
+            novum-world-ai/*.wav
+            novum-world-ai/*.mp3
+          retention-days: 1

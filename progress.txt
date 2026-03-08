@@ -4,4 +4,4 @@
 - [x] Fase 1: The Brain (Content-Creator)
 - [x] Fase 2: The Sets (Production)
 - [x] Fase 3: The Assembly (Final Cut)
-- [ ] Refactorización de GitHub Actions
+- [x] Refactorización de GitHub Actions

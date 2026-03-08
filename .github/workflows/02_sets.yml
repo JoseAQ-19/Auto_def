@@ -1,0 +1,57 @@
+name: "2. The Sets (Production)"
+
+on:
+  workflow_run:
+    workflows: ["1. The Brain (Content-Creator)"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  run-sets:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Instalar dependencias
+        working-directory: ./novum-world-ai
+        run: pip install -r requirements.txt
+
+      - name: Descargar Artifacts del Cerebro
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: brain-artifacts
+          path: novum-world-ai/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ejecutar FASE 2 - The Sets
+        working-directory: ./novum-world-ai
+        env:
+          HF_TOKEN_PODCAST: ${{ secrets.HF_TOKEN_PODCAST }}
+          HF_TOKEN_ACTION: ${{ secrets.HF_TOKEN_ACTION }}
+          HF_SPACE_PODCAST_URL: ${{ secrets.HF_SPACE_PODCAST_URL }}
+          HF_SPACE_ACTION_URL: ${{ secrets.HF_SPACE_ACTION_URL }}
+        run: python src/phase2_sets.py
+
+      - name: Subir Artifacts de Producción
+        uses: actions/upload-artifact@v4
+        with:
+          name: set-artifacts
+          path: |
+            novum-world-ai/shooting_plan.json
+            novum-world-ai/scene_*.mp4
+          retention-days: 1
