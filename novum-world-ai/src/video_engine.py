@@ -31,9 +31,9 @@ class VideoEngine:
         logger.info(f"Enviando imagen {master_image_path} y audio {audio_path}...")
         try:
             result = client.predict(
-                image=handle_file(master_image_path),
-                audio=handle_file(audio_path),
-                api_name="/predict"
+                image_path=handle_file(master_image_path),
+                audio_path=handle_file(audio_path),
+                api_name="/generate"
             )
             # El client.predict guarda el archivo devuelto en un /tmp/ local y devuelve la ruta
             os.rename(result, output_path)
@@ -41,6 +41,8 @@ class VideoEngine:
             return output_path
         except Exception as e:
             logger.error(f"Error en Estudio A (Podcast): {e}")
+            try: logger.error(f"Endpoints Podcast: {client.endpoints}")
+            except: pass
             raise
 
     def generate_action_video(self, text_prompt: str, master_image_path: str, output_path: str = "action_output.mp4") -> str:
@@ -58,12 +60,15 @@ class VideoEngine:
         try:
             result = client.predict(
                 prompt=text_prompt,
-                image=handle_file(master_image_path),
-                api_name="/predict"
+                first_frame=handle_file(master_image_path),
+                end_frame=handle_file(master_image_path),
+                api_name="/generate_video"
             )
             os.rename(result, output_path)
             logger.info(f"Vídeo de acción generado exitosamente en: {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Error en Estudio B (Acción): {e}")
+            try: logger.error(f"Endpoints Acción: {client.endpoints}")
+            except: pass
             raise
