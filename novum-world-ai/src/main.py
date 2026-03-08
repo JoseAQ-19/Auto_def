@@ -15,30 +15,73 @@ class NovumDirector:
 
     def get_todays_script(self):
         """
-        [Actualizado] Devuelve el script generado basado en data_scan.
+        Devuelve el script generado basado en data_scan.
         """
         from data_scanner import DataScanner
+        import os
+        import json
+        import requests
+        
         scanner = DataScanner()
         top_url = scanner.get_top_article()
         prompt_guion = scanner.compose_prompt_for_script(top_url)
-        # GSD: Next step would be sending this prompt to an LLM (Groq/OpenAI) to return JSON.
-        # For now, we simulate the LLM structured JSON output.
-        logger.info(f"Simulando Cerebro LLM. Prompt puente: {prompt_guion}")
         
-        return [
-            {
-                "type": "podcast", 
-                "text": "¡Alarma de ciberseguridad! Hoy destapamos un escándalo."
-            },
-            {
-                "type": "action", 
-                "prompt": "Cinematic zoom in to a dark room with green hacker code falling on screens, glowing neon, 4k"
-            },
-            {
-                "type": "podcast", 
-                "text": "Protege tus datos, y recuerda: la información es poder. ¡Hasta mañana!"
-            }
-        ]
+        logger.info(f"Conectando al Cerebro LLM. Prompt puente: {prompt_guion}")
+
+        api_key = os.getenv("GROQ_API_KEY", "")
+        if not api_key:
+            logger.warning("GROQ_API_KEY no encontrada. Usando guion de respaldo.")
+            return [
+                {
+                    "type": "podcast", 
+                    "text": "¡Alarma de ciberseguridad! Hoy destapamos un escándalo."
+                },
+                {
+                    "type": "action", 
+                    "prompt": "Cinematic zoom in to a dark room with green hacker code falling on screens, glowing neon, 4k"
+                },
+                {
+                    "type": "podcast", 
+                    "text": "Protege tus datos, y recuerda: la información es poder. ¡Hasta mañana!"
+                }
+            ]
+            
+        system_prompt = '''Eres el Director Creativo de Novum World.
+Tu tarea es tomar una idea de artículo y devolver un array de JSON estricto con las escenas del vídeo.
+Formatos permitidos en el array:
+- {"type": "podcast", "text": "Texto que Novum locutará a cámara."}
+- {"type": "action", "prompt": "Prompt visual hiperdescriptivo para generar B-Roll o de acción."}
+Asegúrate de que haya consistencia y no devuelvas NADA MÁS que el JSON (sin backticks ni markdown).'''
+
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt_guion}
+                    ],
+                    "temperature": 0.7
+                }
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            
+            # Limpiar posible markdown si el LLM falla instrucciones.
+            if content.startswith("```json"):
+                content = content.replace("```json", "").replace("```", "").strip()
+                
+            script_json = json.loads(content)
+            logger.info("Guion JSON generado por LLM exitosamente.")
+            return script_json
+            
+        except Exception as e:
+            logger.error(f"Fallo al conectar con el LLM o parsear JSON: {e}. Usando respaldo.")
+            return [
+                {"type": "podcast", "text": "Ha habido un error en mi matriz de procesamiento. ¡Pero no te preocupes, mañana volveremos a la carga!"}
+            ]
 
     def process_scene(self, scene: dict, master_image_path: str, index: int) -> str:
         """
