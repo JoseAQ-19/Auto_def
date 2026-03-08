@@ -41,7 +41,7 @@ class DataScanner:
         # Parametros de servidor STDIO (Node.js) para conectar al MCP de GSC
         server_params = StdioServerParameters(
             command="npx",
-            args=["-y", "@kimlimjustin/gsc-mcp"], # Paquete típico de GSC MCP (o @davipons/gsc-mcp-server)
+            args=["-y", "mcp-server-gsc"], # Usamos el paquete oficial/estable
             env=env_vars
         )
         
@@ -59,7 +59,7 @@ class DataScanner:
                     
                     # Llamada a la herramienta de analíticas del MCP
                     # Este payload mapea a GSC API
-                    result = await session.call_tool("get_search_analytics", arguments={
+                    result = await session.call_tool("search_analytics", arguments={
                         "siteUrl": self.site_url,
                         "startDate": start_str,
                         "endDate": end_str,
@@ -74,6 +74,10 @@ class DataScanner:
                     
                     try:
                         data = json.loads(text_content)
+                        # El servidor mcp-server-gsc devuelve el objeto directo de la API de Google
+                        # que contiene la propiedad 'rows'.
+                        if isinstance(data, dict):
+                            return data.get("rows", [])
                         return data if isinstance(data, list) else []
                     except json.JSONDecodeError:
                         logger.error(f"GSC devolvió un string no-JSON: {text_content}")
