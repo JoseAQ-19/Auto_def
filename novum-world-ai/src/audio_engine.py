@@ -32,7 +32,7 @@ class AudioEngine:
             }
         }
         
-        logger.info(f"Generando audio para el texto ({len(text)} chars)...")
+        logger.info(f"Generando audio para el texto ({len(text)} chars) con voz {voice_id}...")
         try:
             response = requests.post(url, json=data, headers=headers)
             response.raise_for_status()
@@ -43,6 +43,13 @@ class AudioEngine:
                         f.write(chunk)
             logger.info(f"Audio guardado correctamente en: {output_path}")
             return output_path
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 402 and voice_id != "21m00Tcm4TlvDq8ikWAM":
+                logger.warning(f"Voz {voice_id} bloqueada por plan Free (402). Intentando fallback con voz gratuita por defecto...")
+                return self.generate_audio(text, "21m00Tcm4TlvDq8ikWAM", output_path)
+            
+            logger.error(f"Error HTTP al generar audio con ElevenLabs: {e.response.text}")
+            raise
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error al generar audio con ElevenLabs: {e}")
+            logger.error(f"Error de red al generar audio con ElevenLabs: {e}")
             raise
