@@ -15,8 +15,9 @@ class Phase2Sets:
         # Búsqueda robusta del plan de rodaje (Trinity Architecture Support)
         possible_paths = [
             os.path.join(os.path.dirname(__file__), "..", "shooting_plan.json"),
+            os.path.join(os.path.dirname(__file__), "..", "..", "shooting_plan.json"), # Salto a la raíz real
             os.path.join(os.getcwd(), "shooting_plan.json"),
-            os.path.join(os.getcwd(), "novum-world-ai", "shooting_plan.json"),
+            os.path.join(os.getcwd(), "..", "shooting_plan.json"), # Salto desde el CWD
             "shooting_plan.json"
         ]
         
@@ -82,11 +83,33 @@ class Phase2Sets:
     def execute(self):
         logger.info("--- INICIANDO FASE 2: THE SETS ---")
         
-        if not os.path.exists(self.plan_path):
-            logger.error(f"No se encontró {self.plan_path}. Ejecuta la Fase 1 primero.")
-            return False
-
-        with open(self.plan_path, "r", encoding="utf-8") as f:
+        # Búsqueda robusta del plan de rodaje
+        possible_paths = [
+            self.plan_path,                               # ../shooting_plan.json
+            os.path.join(os.getcwd(), "shooting_plan.json"), # ./shooting_plan.json
+            os.path.join(os.path.dirname(__file__), "shooting_plan.json"), # ./src/shooting_plan.json
+            "/home/runner/work/Auto_def/Auto_def/shooting_plan.json", # Root absoluto runner
+            "/home/runner/work/Auto_def/Auto_def/novum-world-ai/shooting_plan.json" # Sub absoluta runner
+        ]
+        
+        plan_actual = None
+        for p in possible_paths:
+            if os.path.exists(p):
+                plan_actual = p
+                logger.info(f"Plan de rodaje encontrado en: {p}")
+                break
+        
+        if not plan_actual:
+            logger.error(f"FATAL: No se encontró el plan de rodaje en ninguna de estas rutas: {possible_paths}")
+            # Listar directorios para depuración en vivo
+            try:
+                import glob
+                logger.info(f"Contenido de la carpeta actual ({os.getcwd()}): {os.listdir('.')}")
+                logger.info(f"Búsqueda recursiva de JSONs: {glob.glob('**/*.json', recursive=True)}")
+            except: pass
+            return
+            
+        with open(plan_actual, "r", encoding="utf-8") as f:
             plan = json.load(f)
 
         master_image_path = os.path.join(os.path.dirname(__file__), "..", "assets", "novum_master.png")
