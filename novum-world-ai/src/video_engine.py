@@ -24,7 +24,7 @@ class VideoEngine:
             raise ValueError("HF_SPACE_PODCAST_URL no configurada.")
             
         logger.info(f"Conectando al Estudio A (Podcast): {self.podcast_url}")
-        client = Client(self.podcast_url, hf_token=self.podcast_token)
+        client = Client(self.podcast_url, token=self.podcast_token)
         
         # Asumimos que los parámetros del gradio client del modelo lip-sync son: imagen maestra, audio.
         # Ajustar los predict endpoints según la API expuesta por el Space concreto.
@@ -51,7 +51,7 @@ class VideoEngine:
             raise ValueError("HF_SPACE_ACTION_URL no configurada.")
             
         logger.info(f"Conectando al Estudio B (Acción): {self.action_url}")
-        client = Client(self.action_url, hf_token=self.action_token)
+        client = Client(self.action_url, token=self.action_token)
         
         # Asumimos que los parámetros del gradio client son: prompt visual, imagen maestra.
         logger.info(f"Enviando imagen {master_image_path} y prompt '{text_prompt}'...")

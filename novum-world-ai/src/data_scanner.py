@@ -63,7 +63,7 @@ class DataScanner:
                         "siteUrl": self.site_url,
                         "startDate": start_str,
                         "endDate": end_str,
-                        "dimensions": ["PAGE"],
+                        "dimensions": "page",
                         "rowLimit": 3
                     })
                     
