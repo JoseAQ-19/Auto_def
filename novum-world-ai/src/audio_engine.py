@@ -12,7 +12,7 @@ class AudioEngine:
             raise ValueError("ELEVENLABS_API_KEY no configurada.")
         self.base_url = "https://api.elevenlabs.io/v1/text-to-speech"
 
-    def generate_audio(self, text: str, voice_id: str = "cjVigY5qzO86Huf0OWal", output_path: str = "output.mp3") -> str:
+    def generate_audio(self, text: str, voice_id: str = "qUPtETgSYRhCRb2pfOla", output_path: str = "output.mp3") -> str:
         """
         Llama a ElevenLabs para generar audio a partir del texto y lo guarda en output_path.
         Retorna la ruta del archivo generado.
