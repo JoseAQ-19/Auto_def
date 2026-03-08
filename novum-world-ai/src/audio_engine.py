@@ -44,9 +44,9 @@ class AudioEngine:
             logger.info(f"Audio guardado correctamente en: {output_path}")
             return output_path
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 402 and voice_id != "21m00Tcm4TlvDq8ikWAM":
-                logger.warning(f"Voz {voice_id} bloqueada por plan Free (402). Intentando fallback con voz gratuita por defecto...")
-                return self.generate_audio(text, "21m00Tcm4TlvDq8ikWAM", output_path)
+            if e.response.status_code == 402 and voice_id != "pNInz6obpgDQGcFmaJgB":
+                logger.warning(f"Voz {voice_id} bloqueada por plan Free (402). Intentando fallback con voz masculina gratuita por defecto (Adam)...")
+                return self.generate_audio(text, "pNInz6obpgDQGcFmaJgB", output_path)
             
             logger.error(f"Error HTTP al generar audio con ElevenLabs: {e.response.text}")
             raise
