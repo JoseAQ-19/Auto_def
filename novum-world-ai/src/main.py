@@ -102,12 +102,11 @@ class NovumDirector:
 if __name__ == "__main__":
     # Setup mínimo para prueba local
     director = NovumDirector()
-    # Usar una imagen dummy si no existe
-    dummy_image = "assets/novum_master_image.png"
-    if not os.path.exists("assets"):
-        os.makedirs("assets")
-    if not os.path.exists(dummy_image):
-        with open(dummy_image, "w") as f:
-            f.write("dummy")
+    
+    # Path real de la imagen maestra
+    master_image = "assets/novum_master.png"
+    if not os.path.exists(master_image):
+        logger.error(f"No se encontró la imagen maestra en {master_image}. Abortando.")
+        exit(1)
             
-    director.run_daily_workflow(dummy_image)
+    director.run_daily_workflow(master_image)
