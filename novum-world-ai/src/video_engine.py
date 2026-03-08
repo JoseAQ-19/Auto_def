@@ -72,7 +72,7 @@ class VideoEngine:
                 height="720",
                 width="1280",
                 randomize_seed=True,
-                seed=-1,
+                seed=0,
                 api_name="/generate_video"
             )
             video_file = result[0] if isinstance(result, (tuple, list)) else result
