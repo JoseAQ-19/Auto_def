@@ -25,10 +25,7 @@ class NovumDirector:
         logger.info(f"Generando script del día inspirado en GSC...\nPrompt: {prompt_guion}")
         
         return [
-            {"type": "dialogue", "text": "¡Hola a todos! Bienvenidos a Novum World."},
-            {"type": "dialogue", "text": prompt_guion},
-            {"type": "action", "prompt": "Novum tecleando intensamente frente a pantallas holográficas investigando analíticas."},
-            {"type": "dialogue", "text": "Este logro nos inspira a seguir construyendo. ¡Hasta mañana!"}
+            {"type": "dialogue", "text": "¡Hola a todos! Bienvenidos a Novum World. Este es mi primer video totalmente automatizado. ¡Hasta mañana!"}
         ]
 
     def process_scene(self, scene: dict, master_image_path: str, index: int) -> str:
@@ -67,13 +64,27 @@ class NovumDirector:
 
     def assemble_videos(self, video_paths: list, final_output: str="final_video.mp4"):
         """
-        [Scaffold] Une todos los clips usando FFmpeg / MoviePy.
+        [Actualizado] Une todos los clips usando MoviePy o copia si es solo uno.
         """
+        import shutil
         logger.info(f"Ensamblando {len(video_paths)} clips en {final_output}...")
-        # En producción: moviepy.editor.concatenate_videoclips o llamada subprocess a ffmpeg.
-        with open(final_output, "w") as f:
-            f.write("Simulated merged video.")
-        return final_output
+        if len(video_paths) == 1:
+            shutil.copy(video_paths[0], final_output)
+            return final_output
+            
+        try:
+            from moviepy.editor import VideoFileClip, concatenate_videoclips
+            clips = [VideoFileClip(p) for p in video_paths]
+            final_clip = concatenate_videoclips(clips)
+            final_clip.write_videofile(final_output, fps=24, logger=None)
+            for clip in clips:
+                clip.close()
+            return final_output
+        except Exception as e:
+            logger.error(f"Error ensamblando video con moviepy: {e}")
+            if video_paths:
+                shutil.copy(video_paths[0], final_output)
+            return final_output
 
     def run_daily_workflow(self, master_image_path: str):
         """
