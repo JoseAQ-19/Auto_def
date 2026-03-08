@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
-  contents: read
+  actions: write
+  contents: write
 
 jobs:
   run-assembly:
