@@ -35,7 +35,8 @@ class VideoEngine:
                 audio_path=handle_file(audio_path),
                 prompt="A realistic person speaking naturally",
                 negative_prompt="low quality, bad anatomy, worst quality, distorted",
-                seed=-1,  # Passing as int in case string is rejected by Space
+                seed="-1",
+                video_duration=5.0,
                 api_name="/generate"
             )
             # El client.predict en algunos Spaces devuelve una tupla (video_path, metadata, etc.)
@@ -69,8 +70,8 @@ class VideoEngine:
                 duration=6.0,
                 enhance_prompt=False,
                 generation_mode="i2v",
-                height=720,
-                width=1280,
+                height="720",
+                width="1280",
                 randomize_seed=True,
                 seed=0,
                 api_name="/generate_video"

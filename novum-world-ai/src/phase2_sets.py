@@ -12,9 +12,8 @@ class Phase2Sets:
     def __init__(self):
         self.video_engine = VideoEngine()
         self.plan_path = os.path.join(os.path.dirname(__file__), "..", "shooting_plan.json")
-        # Nombres de Repositorio de Hugging Face deducidos o inyectados por el usuario
-        self.podcast_repo_id = "JoseAQ/video-podcast"
-        self.action_repo_id = "JoseAQ/video-action"
+        self.podcast_repo_id = os.environ.get("HF_SPACE_PODCAST_URL", "").replace("https://huggingface.co/spaces/", "").replace("https://joseaq-video-podcast.hf.space/", "JoseAQ/video-podcast").strip("/") or "JoseAQ/video-podcast"
+        self.action_repo_id = os.environ.get("HF_SPACE_ACTION_URL", "").replace("https://huggingface.co/spaces/", "").replace("https://joseaq-video-action.hf.space/", "JoseAQ/video-action").strip("/") or "JoseAQ/video-action"
 
     def audit_and_fix_space(self, repo_id: str, token: str):
         """
@@ -76,8 +75,11 @@ class Phase2Sets:
         if not os.path.exists(master_image_path):
             logger.warning(f"Master image no encontrada en {master_image_path}. Creando un mock image de textura para evitar crash fatal...")
             os.makedirs(os.path.dirname(master_image_path), exist_ok=True)
+            import base64
+            # 1x1 pixel PNG válido base64
+            b64_img = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
             with open(master_image_path, "wb") as f:
-                f.write(b"mock_image_bytes")
+                f.write(base64.b64decode(b64_img))
 
         base_dir = os.path.dirname(self.plan_path)
         clips_generated = []
