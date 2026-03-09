@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+    --bg-color: #0d0d12;
+    --text-color: #00ff41;
+    --border-color: #00ff41;
+    --accent: #ff003c;
+    --dim-text: rgba(0, 255, 65, 0.5);
+    --panel-bg: rgba(0, 20, 0, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-image: 
+        linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.terminal-container {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+/* Pseudo-decorations for terminal look */
+.terminal-container::before {
+    content: "x";
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 1.2rem;
+    color: var(--accent);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 1px dotted var(--dim-text);
+    padding-bottom: 15px;
+}
+
+.glitch-text {
+    font-size: 2rem;
+    position: relative;
+    text-shadow: 0 0 5px var(--text-color);
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: var(--dim-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    color: var(--dim-text);
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+    background: rgba(0, 255, 65, 0.05);
+}
+
+/* File Drop Area */
+.file-drop-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    padding: 25px;
+    border: 1px dashed var(--dim-text);
+    background-color: transparent;
+    transition: 0.2s;
+    text-align: center;
+    cursor: pointer;
+}
+
+.file-drop-area.is-active {
+    background-color: rgba(0, 255, 65, 0.1);
+    border-color: var(--text-color);
+}
+
+.file-msg {
+    font-size: 0.9rem;
+    font-weight: 300;
+}
+
+.file-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+    opacity: 0;
+}
+
+/* Button */
+.cyber-button {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.2s;
+    margin-top: 10px;
+}
+
+.cyber-button:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--text-color);
+}
+
+.cyber-button:disabled {
+    border-color: var(--dim-text);
+    color: var(--dim-text);
+    cursor: not-allowed;
+}
+
+/* Console Logs */
+.terminal-console {
+    margin-top: 30px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--dim-text);
+    min-height: 100px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+}
+
+.terminal-console p {
+    margin-bottom: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+.err {
+    color: var(--accent);
+}
+.warn {
+    color: #ffb800;
+}

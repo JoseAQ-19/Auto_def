@@ -1,8 +1,25 @@
-# GSD Progress Tracker
-[ ] Initialization & Planning
-[x] Component: Data Scanner (GSC MCP) + Test
-[x] Component: Audio Engine + Test
-[x] Component: Video Engine + Test
-[x] Component: Orquestador (main.py) + Test
-[x] Component: GitHub Action Workflow
-[x] Assembly & Integration
+# Project Roadmap: Novum World AI (V2 - Arquitectura Coste Cero)
+# Status: Planificación Inicial
+
+[x] Phase 1: Extracción y Guionización (El Cerebro)
+    - [x] Script de conexión a Google Search Console (GSC) API.
+    - [x] Módulo LLM para redacción del Mega Prompt de Novum (guion y voz en off).
+    - [x] Implementación de Telegram Bot *solo* para notificaciones de texto.
+    - [x] Configuración de GitHub Actions (Cron) para ejecución diaria automática.
+
+[x] Phase 2: La Notificación y Configuración MCP / Credenciales
+    - [x] Configuración del bot de Telegram para envío directo del Mega Prompt generado en la Phase 1 (fricción cero).
+    - [x] Limpieza de variables de entorno y definición en GitHub Secrets.
+
+[x] Phase 3: PWA Privada para Uploads Pesados (Recepción)
+    - [x] PWA en Vercel/Cloudflare Pages (Next.js/HTML).
+    - [x] Sistema de login por contraseña maestra.
+    - [x] Implementación del "Client-side Upload" con Presigned URLs hacia Cloudflare R2 (límite < 50MB por MP4).
+    - [x] Webhook/Ping `repository_dispatch` a GitHub Actions tras subida exitosa.
+
+[x] Phase 4: Distribución Multiplataforma (El Músculo)
+    - [x] Configuración de GitHub Action que es disparada por la PWA.
+    - [x] Descarga ultra-rápida del MP4 desde Cloudflare R2 al runner de GitHub.
+    - [x] Integración estricta y exclusiva del SDK de **Composio** para autopublicar en YouTube Shorts, TikTok e Instagram Reels.
+    - [x] Limpieza automatizada del MP4 en el bucket de R2.
+    - [x] Notificación final de éxito por Telegram.

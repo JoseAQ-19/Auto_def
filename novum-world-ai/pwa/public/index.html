@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Novum World - Upload Terminal</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- PWA Manifest & Icons -->
+    <meta name="theme-color" content="#0d0d0d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div class="terminal-container">
+        <header>
+            <h1 class="glitch-text" data-text="NOVUM_LINK">NOVUM_LINK</h1>
+            <p class="subtitle">Secure Video Uplink to Cloudflare R2</p>
+        </header>
+
+        <main>
+            <form id="uploadForm">
+                <div class="input-group">
+                    <label>MASTER PASSWORD</label>
+                    <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                </div>
+
+                <div class="input-group">
+                    <label>TÍTULO DEL VIDEO (SEO)</label>
+                    <input type="text" id="videoTitle" required placeholder="Ej: La verdad oculta de la IA #Tech #Novum" maxlength="150">
+                </div>
+
+                <div class="input-group file-upload-wrapper">
+                    <label>ARCHIVO .MP4 (Max 50MB)</label>
+                    <div class="file-drop-area" id="dropZ">
+                        <span class="file-msg">Toca o arrastra tu video aquí</span>
+                        <input class="file-input" type="file" id="videoFile" accept="video/mp4,video/quicktime" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="cyber-button">
+                    INICIAR SECUENCIA_UPLOAD
+                </button>
+            </form>
+
+            <div id="statusConsole" class="terminal-console hidden">
+                <p>> System ready...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

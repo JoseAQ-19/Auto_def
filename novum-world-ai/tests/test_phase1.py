@@ -1,34 +1,40 @@
-import os
-import sys
 import unittest
-import json
+from unittest.mock import patch, MagicMock
+from src.telegram_notifier import send_telegram_message
+from src.llm_agent import generate_novum_prompt
+from src.gsc_client import get_top_performing_topic
 
-# Modify path to import src modules
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+class TestPhase1(unittest.TestCase):
 
-from phase1_brain import Phase1Brain
-
-class TestPhase1Brain(unittest.TestCase):
-    def setUp(self):
-        os.environ["ELEVENLABS_API_KEY"] = "mock_key_for_test"
-        self.brain = Phase1Brain()
-
-    def test_llm_json_generation(self):
-        # We test the direct generation of LLM Script without audio payload
-        test_prompt = "Escribe un artículo corto sobre IA generativa"
-        result = self.brain.get_llm_script(test_prompt)
+    @patch('src.telegram_notifier.requests.post')
+    @patch('src.telegram_notifier.os.getenv')
+    def test_send_telegram_success(self, mock_getenv, mock_post):
+        mock_getenv.side_effect = lambda k, d=None: "dummy_value" if k in ["TOKEN_TELEGRAM", "TELEGRAM_USER_ID"] else d
         
-        self.assertIsInstance(result, list, "El resultado no es una lista")
-        self.assertGreater(len(result), 0, "La lista está vacía")
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_post.return_value = mock_resp
         
-        for item in result:
-            self.assertIn("type", item, "Falta etiqueta 'type'")
-            self.assertIn(item["type"], ["podcast", "action"], "El tipo debe ser podcast o action")
-            
-            if item["type"] == "podcast":
-                self.assertIn("text", item, "Falta texto en tipo podcast")
-            elif item["type"] == "action":
-                self.assertIn("prompt", item, "Falta prompt en tipo action")
-
+        result = send_telegram_message("Test de notificación 🦑")
+        self.assertTrue(result)
+        mock_post.assert_called_once()
+        
+    @patch('src.llm_agent.OpenAI')
+    @patch('src.llm_agent.os.getenv')
+    def test_llm_agent_prompt(self, mock_getenv, mock_openai):
+        mock_getenv.side_effect = lambda k, d=None: "fake_sk" if k == "LLM_API_KEY" else d
+        
+        mock_client = MagicMock()
+        mock_completion = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.content = "[Voz en Off]: Hola, soy Novum."
+        mock_completion.choices = [mock_choice]
+        mock_client.chat.completions.create.return_value = mock_completion
+        mock_openai.return_value = mock_client
+        
+        result = generate_novum_prompt("Prueba AI")
+        self.assertEqual(result, "[Voz en Off]: Hola, soy Novum.")
+        mock_openai.assert_called_once()
+        
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,42 @@
+name: "Fase 4: El Músculo (Distribución y Limpieza R2)"
+
+on:
+  repository_dispatch:
+    types: [video_upload_ready] # Se dispara únicamente a través de la PWA FrontEnd cuando subimos el .mp4
+
+jobs:
+  distribute_and_clean:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install boto3 # Obligatorio para borrar el MP4 en R2
+          
+      - name: Asumir Control - Fase 4 (Composio SDK Distribución)
+        env:
+          # Payload Dinámico desde la PWA FrontEnd
+          VIDEO_TITLE: ${{ github.event.client_payload.title }}
+          VIDEO_URL: ${{ github.event.client_payload.video_url }}
+          FILE_KEY: ${{ github.event.client_payload.file_key }}
+          
+          # Entorno Estático de Seguridad (Secretos)
+          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
+        run: |
+          export PYTHONPATH=$(pwd)
+          python -m src.main_phase4

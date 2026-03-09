@@ -1,14 +1,21 @@
-# PRD: Novum World AI Director (V1.0)
-## Resumen
-Orquestador automático en Python + GitHub Actions para generar contenido diario de vídeo.
+# PRD: Novum World AI (V2 - Arquitectura Coste Cero)
+**Role:** Arquitecto Principal GSD
+**Focus:** Fricción Cero en Recepción y Distribución
+**Restricciones Tecnológicas:** Plataformas "Always Free", Client-side Uploads, y delegación de distribución en Composio SDK.
 
-## Componentes y Requisitos
-1. **Data Scan**: Escaneo de artículos/estudiantes con más impresiones para elegir el tema del día.
-2. **Scripting**: Generación de un guion de 60 segundos dividido en escenas.
-3. **Voice Synth (Estudio A)**: Por cada escena, llamada a la API de ElevenLabs para obtener el .mp3.
-4. **Video Prod (Estudio B & Estudio A)**: Bucle de creación vía gradio_client a Hugging Face spaces:
-   - "Habla": Conexión enviando el audio -> "Novum-Podcast-Studio" (LTX-2).
-   - "Acción": Conexión enviando el prompt visual -> "Novum-Action-Set" (Wan2.2).
-5. **Assembly**: Unión de todos los clips `.mp4` vía FFmpeg.
-6. **Publishing**: Subida automática a redes a través de Composio.
-7. **Secrets Exigidos**: ELEVENLABS_API_KEY, HF_TOKEN_PODCAST, HF_TOKEN_ACTION, HF_SPACE_PODCAST_URL, HF_SPACE_ACTION_URL.
+## 1. El Objetivo
+Automatizar un flujo de trabajo de creación de contenido en formato vertical (Shorts, Reels, TikTok) sin límites de carga para .mp4 (30MB+). El humano únicamente renderiza en CapCut Agent y usa una PWA para la subida final sin tiempos de espera.
+
+## 2. Componentes de la Arquitectura
+- **Cerebro (Notificaciones & LLM):** Scripts en Python ejecutados diariamente por un Cronjob de GitHub Actions. Usará Telegram únicamente para enviar de manera asíncrona notificaciones de texto (Mega Prompts) al humano.
+- **Recepción (La PWA):** Página Web App ligera protegida por master password y hosted en Cloudflare Pages / Vercel. Sube el vídeo exportado del PC/móvil usando **Client-side Pre-signed URLs** hacia Cloudflare R2 sin tocar el límite Serverless.
+- **Músculo (Extracción & Ruteo):** API request de Google Search Console para seleccionar temas. Tras la carga en R2, la PWA gatilla un Webhook a GitHub Actions mediante `repository_dispatch`.
+- **Distribución:** GitHub Actions se baja el MP4 ultrarrápido desde R2, lo auto-publica exclusivamente a través de la API oficial de **Composio** en YouTube, Instagram y TikTok, y limpia R2 tras publicarlo. 
+
+## 3. Limitaciones Previas Superadas
+- Subidas limitadas a 20MB de Telegram Bots publicas resueltas moviendo la carga a Cloudflare R2 y aislando Telegram solo a texto y notificaciones.
+- Los timeouts o límites HTTP de servidores gratuitos se manejan moviendo la carga real al Browser-Side con las SDKs nativas hacia AWS/S3 compatible services como Cloudflare.
+
+---
+## Flujos y Faseado en `progress.txt`
+Todas las tareas asociadas a estas 4 Fases están detalladas a fuego en la raíz del repositorio y guiadas estrictamente bajo el framework GSD. Ninguna otra tecnología de hosting se va a plantear excepto este pipeline 100% gratuito basado en PWA y Actions.

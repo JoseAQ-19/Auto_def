@@ -1,0 +1,9 @@
+{
+    "name": "novum-world-pwa",
+    "version": "1.0.0",
+    "description": "PWA para subida de videos a Novum World (Coste Cero)",
+    "dependencies": {
+        "@aws-sdk/client-s3": "^3.504.0",
+        "@aws-sdk/s3-request-presigner": "^3.504.0"
+    }
+}

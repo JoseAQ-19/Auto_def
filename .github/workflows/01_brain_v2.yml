@@ -1,0 +1,40 @@
+name: "Fase 1: El Cerebro (GSC & LLM Bot)"
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Ejecuta todos los días a las 08:00 UTC
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  run_brain:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Decode GSC Credentials
+        run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" | base64 --decode > credentials.json
+          
+      - name: Execute Phase 1
+        env:
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+          GSC_CREDENTIALS_PATH: credentials.json
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
+        run: |
+          export PYTHONPATH=$(pwd)
+          python -m src.main_phase1
