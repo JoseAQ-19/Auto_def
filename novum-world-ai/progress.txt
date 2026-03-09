@@ -16,6 +16,7 @@
     - [x] Sistema de login por contraseña maestra.
     - [x] Implementación del "Client-side Upload" con Presigned URLs hacia Cloudflare R2 (límite < 50MB por MP4).
     - [x] Webhook/Ping `repository_dispatch` a GitHub Actions tras subida exitosa.
+    - [x] Soporte Dual y Múltiple (Lanzamiento Directo & Fábrica de Montaje Batch).
 
 [x] Phase 4: Distribución Multiplataforma (El Músculo)
     - [x] Configuración de GitHub Action que es disparada por la PWA.
