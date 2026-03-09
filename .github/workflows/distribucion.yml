@@ -1,8 +1,8 @@
-name: "Fase 4: El Músculo (Distribución y Limpieza R2)"
+name: "Distribución Multicanal (El Músculo)"
 
 on:
   repository_dispatch:
-    types: [video_upload_ready] # Se dispara únicamente a través de la PWA FrontEnd cuando subimos el .mp4
+    types: [video_upload_ready] # Se dispara automáticamente por la PWA (Phase 3)
 
 jobs:
   distribute_and_clean:
@@ -18,13 +18,15 @@ jobs:
           python-version: '3.11'
           
       - name: Install Dependencies
+        working-directory: ./novum-world-ai
         run: |
           pip install -r requirements.txt
-          pip install boto3 # Obligatorio para borrar el MP4 en R2
+          pip install boto3 # Obligatorio para borrar el MP4 en Cloudflare R2
           
       - name: Asumir Control - Fase 4 (Composio SDK Distribución)
+        working-directory: ./novum-world-ai
         env:
-          # Payload Dinámico desde la PWA FrontEnd
+          # Payload Dinámico desde el webhook de la PWA FrontEnd
           VIDEO_TITLE: ${{ github.event.client_payload.title }}
           VIDEO_URL: ${{ github.event.client_payload.video_url }}
           FILE_KEY: ${{ github.event.client_payload.file_key }}
