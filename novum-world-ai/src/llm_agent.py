@@ -9,6 +9,12 @@ def generate_novum_prompt(topic: str) -> str:
     # 1. Definimos los proveedores en orden de prioridad (El primero que funcione, cortará la cascada)
     providers = [
         {
+            "name": "NVIDIA",
+            "api_key": os.getenv("NVIDIA_API_KEY"),
+            "base_url": "https://integrate.api.nvidia.com/v1",
+            "model": "meta/llama-3.1-70b-instruct"
+        },
+        {
             "name": "OpenRouter",
             "api_key": os.getenv("OPENROUTER_API_KEY"),
             "base_url": "https://openrouter.ai/api/v1",
@@ -18,7 +24,7 @@ def generate_novum_prompt(topic: str) -> str:
             "name": "Groq",
             "api_key": os.getenv("GROQ_API_KEY"),
             "base_url": "https://api.groq.com/openai/v1",
-            "model": "llama-3.3-70b-versatile" # O llama-3.1-8b-instant
+            "model": "llama-3.3-70b-versatile"
         },
         {
             "name": "Hugging Face",

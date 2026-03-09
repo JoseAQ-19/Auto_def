@@ -13,6 +13,7 @@ Ve a tu repositorio de GitHub -> `Settings` -> `Secrets and variables` -> `Actio
 
 ## 2. Los Motores LLM (Inteligencia Guionista)
 El Cerebro usa un sistema de "Cascada", si uno falla por saturación, contacta al siguiente. Añade las API keys que tengas (al menos 1 es obligatoria). Te recomiendo poner las tres para máxima seguridad:
+* **`NVIDIA_API_KEY`**: Permite usar (Llama 3 70B gratis en build.nvidia.com) - MÁXIMA PRIORIDAD Y VELOCIDAD.
 * **`OPENROUTER_API_KEY`**: Permite usar (Llama 3 70B Free de OpenRouter).
 * **`GROQ_API_KEY`**: Permite usar llama-3-70b-versatile ultrarrápido gratis en Groq.
 * **`HF_TOKEN_CEREBRO`**: Token tradicional de Hugging Face para Meta-Llama.

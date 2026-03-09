@@ -35,6 +35,7 @@ jobs:
         working-directory: ./novum-world-ai
         env:
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           GSC_CREDENTIALS_PATH: credentials.json
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
