@@ -19,14 +19,17 @@ jobs:
           python-version: '3.11'
           
       - name: Install Dependencies
+        working-directory: ./novum-world-ai
         run: |
           pip install -r requirements.txt
           
       - name: Decode GSC Credentials
+        working-directory: ./novum-world-ai
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" | base64 --decode > credentials.json
           
       - name: Execute Phase 1
+        working-directory: ./novum-world-ai
         env:
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
           GSC_CREDENTIALS_PATH: credentials.json
