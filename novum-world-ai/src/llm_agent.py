@@ -6,12 +6,12 @@ def generate_novum_prompt(topic: str) -> str:
     Llama al LLM (OpenAI, Groq o Azure via librería openai) para redactar un Mega Prompt
     enfocado a generar un guion y prompt visual en CapCut para el avatar Novum.
     """
-    api_key = os.getenv("LLM_API_KEY")
-    base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1") 
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    api_key = os.getenv("HF_TOKEN_CEREBRO")
+    base_url = os.getenv("LLM_BASE_URL", "https://api-inference.huggingface.co/v1/") 
+    model = os.getenv("LLM_MODEL", "meta-llama/Llama-3.1-8B-Instruct")
     
     if not api_key:
-        raise ValueError("Falta la variable de entorno LLM_API_KEY")
+        raise ValueError("Falta la variable de entorno HF_TOKEN_CEREBRO")
         
     client = OpenAI(api_key=api_key, base_url=base_url)
     

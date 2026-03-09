@@ -11,10 +11,10 @@ Ve a tu repositorio de GitHub -> `Settings` -> `Secrets and variables` -> `Actio
   * ¿Por qué Base64? Porque Github Secrets rompe las comillas y saltos de línea de los JSON.
   * *Cómo obtener el Base64 en PC*: En Windows usa Powerhsell con `[convert]::ToBase64String([IO.File]::ReadAllBytes("credentials.json"))` o usa una web como `base64encode.org`.
 
-## 2. El Agente LLM (El Guionista)
-* **`LLM_API_KEY`**: Tu API Key (ej. de OpenAI `sk-...` o Groq `gsk_...`).
-* **`LLM_BASE_URL`**: Opcional. Si usas OpenAI, déjalo vacío o usa `https://api.openai.com/v1`. Si usas Groq, usa `https://api.groq.com/openai/v1`.
-* **`LLM_MODEL`**: El modelo a usar. Mantenlo barato y rápido: `gpt-4o-mini` (OpenAI) o `llama-3.1-8b-instant` (Groq).
+## 2. El Agente LLM (El Guionista Free Open Source)
+* **`HF_TOKEN_CEREBRO`**: Tu token de Hugging Face (sustituye a la API de OpenAI tradicional).
+* **`LLM_BASE_URL`**: Opcional, pero para conectar el SDK con HF usa: `https://api-inference.huggingface.co/v1/`.
+* **`LLM_MODEL`**: Opcional. Por defecto el código usa `meta-llama/Llama-3.1-8B-Instruct`. Puedes cambiarlo a `mistralai/Mistral-7B-Instruct-v0.3` u otros Modelos Ligeros Gratis en HF.
 
 ## 3. Telegram (Notificaciones)
 * **`TOKEN_TELEGRAM`**: El token que te da el BotFather al crear tu bot (Ej: `123456789:ABCdefgHIJKlmnop...`).

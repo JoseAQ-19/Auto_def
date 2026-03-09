@@ -22,7 +22,7 @@ class TestPhase1(unittest.TestCase):
     @patch('src.llm_agent.OpenAI')
     @patch('src.llm_agent.os.getenv')
     def test_llm_agent_prompt(self, mock_getenv, mock_openai):
-        mock_getenv.side_effect = lambda k, d=None: "fake_sk" if k == "LLM_API_KEY" else d
+        mock_getenv.side_effect = lambda k, d=None: "fake_sk" if k == "HF_TOKEN_CEREBRO" else d
         
         mock_client = MagicMock()
         mock_completion = MagicMock()

@@ -30,7 +30,7 @@ jobs:
         env:
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
           GSC_CREDENTIALS_PATH: credentials.json
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          HF_TOKEN_CEREBRO: ${{ secrets.HF_TOKEN_CEREBRO }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_MODEL: ${{ secrets.LLM_MODEL }}
           TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
