@@ -5,17 +5,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("uploadForm");
     const submitBtn = document.getElementById("submitBtn");
     const consoleDiv = document.getElementById("statusConsole");
+    const modeRadios = document.querySelectorAll('input[name="uploadType"]');
 
-    let currentFile = null;
+    let currentFiles = [];
 
-    // Drag & Drop logic
+    // Toggle single vs multiple
+    modeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'batch') {
+                fileInput.setAttribute('multiple', true);
+                fileMsg.textContent = "Arrastra tus videos aquí (Múltiples)";
+            } else {
+                fileInput.removeAttribute('multiple');
+                fileMsg.textContent = "Arrastra tu video aquí (Único)";
+            }
+            currentFiles = [];
+            fileInput.value = '';
+        });
+    });
+
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            currentFile = e.target.files[0];
-            fileMsg.textContent = `${currentFile.name} (${(currentFile.size / (1024 * 1024)).toFixed(2)} MB)`;
+            currentFiles = Array.from(e.target.files);
+            const sizeMB = currentFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024);
+            fileMsg.textContent = `${currentFiles.length} archivo(s) seleccionados (${sizeMB.toFixed(2)} MB total)`;
         } else {
-            currentFile = null;
-            fileMsg.textContent = "Toca o arrastra tu video aquí";
+            currentFiles = [];
+            fileMsg.textContent = "Toca o arrastra tus videos aquí";
         }
     });
 
@@ -47,72 +63,75 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        if (!currentFile) {
-            logMsg("ERROR: No se detectó archivo. Abortando.", "err");
-            return;
-        }
-
-        if (currentFile.size > 55 * 1024 * 1024) { // Límite de seguridad 55MB
-            logMsg(`ERROR: Archivo sobrepasa los 50MB (${(currentFile.size / 1024 / 1024).toFixed(2)}MB).`, "err");
+        if (currentFiles.length === 0) {
+            logMsg("ERROR: No se detectaron archivos. Abortando.", "err");
             return;
         }
 
         const authKey = document.getElementById("password").value;
+        const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
         const titleText = document.getElementById("videoTitle").value;
-        const safeFileName = `novum_${Date.now()}_${currentFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`;
 
         submitBtn.disabled = true;
         submitBtn.textContent = "UPLOADING...";
 
         try {
+            const filesPayload = currentFiles.map(f => ({
+                filename: `novum_${Date.now()}_${f.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`,
+                contentType: f.type
+            }));
+
             // 1. Obtener Presigned URL
-            logMsg("Solicitando Presigned URL a Cloudflare R2...");
+            logMsg(`Solicitando Presigned URLs a Cloudflare R2 para ${currentFiles.length} archivo(s)...`);
             const res = await fetch("/api/get-presigned-url", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     auth: authKey,
-                    filename: safeFileName,
-                    contentType: currentFile.type
+                    files: filesPayload
                 })
             });
 
             if (!res.ok) throw new Error("Acceso DENEGADO o Fallo de Servidor.");
-            const { url, publicUrl } = await res.json();
-            logMsg("Enlace encriptado recibido. Iniciando PUSH...");
+            const data = await res.json();
+            logMsg("Enlaces encriptados recibidos. Iniciando PUSH paralelo...");
 
-            // 2. Subida directa (Client-Side Upload hacia R2)
-            const uploadRes = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": currentFile.type
-                },
-                body: currentFile
+            // 2. Subida paralela (Client-Side Upload hacia R2)
+            const uploadPromises = currentFiles.map((file, index) => {
+                const { url, publicUrl, filename } = data.urls[index];
+                return fetch(url, {
+                    method: "PUT",
+                    headers: { "Content-Type": file.type },
+                    body: file
+                }).then(uploadRes => {
+                    if (!uploadRes.ok) throw new Error(`Fallo subiendo: ${file.name}`);
+                    return { filename, publicUrl };
+                });
             });
 
-            if (!uploadRes.ok) throw new Error("Fallo la subida a Cloudflare R2.");
-            logMsg("Push completado. Archivo anclado en Cloudflare.");
+            const uploadedFilesData = await Promise.all(uploadPromises);
+            logMsg("Push completado. Archivos anclados en Cloudflare.");
 
-            // 3. Disparar a GitHub Actions
+            // 3. Disparar a GitHub Actions webhook JSON ligero
             logMsg("Enviando señal de ejecución a GitHub Actions...");
             const triggerRes = await fetch("/api/trigger-github", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     auth: authKey,
-                    videoUrl: publicUrl || `https://${safeFileName}`, // Ajustar según domain
-                    videoTitle: titleText,
-                    filename: safeFileName
+                    type: uploadType,
+                    title: titleText,
+                    uploadedFiles: uploadedFilesData
                 })
             });
 
             if (!triggerRes.ok) throw new Error("GitHub rechazó la señal dispatch.");
 
-            logMsg("✓ SECUENCIA EXITOSA. El Agente 04 asume control del video.");
+            logMsg("✓ SECUENCIA EXITOSA. GitHub Automation despierto.");
             submitBtn.textContent = "SISTEMA OK";
             form.reset();
-            currentFile = null;
-            fileMsg.textContent = "Toca o arrastra tu video aquí";
+            currentFiles = [];
+            fileMsg.textContent = "Toca o arrastra tus videos aquí";
 
         } catch (error) {
             logMsg(`X ERROR CRÍTICO: ${error.message}`, "err");

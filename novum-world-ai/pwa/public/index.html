@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,6 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
+
 <body>
     <div class="terminal-container">
         <header>
@@ -21,19 +23,35 @@
             <form id="uploadForm">
                 <div class="input-group">
                     <label>MASTER PASSWORD</label>
-                    <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                    <input type="password" id="password" required placeholder="••••••••"
+                        autocomplete="current-password">
+                </div>
+
+                <div class="input-group mode-selector">
+                    <label>MODO DE OPERACIÓN</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="uploadType" value="single" checked>
+                            <span class="radio-text">A. LANZAMIENTO DIRECTO (1 Video)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="uploadType" value="batch">
+                            <span class="radio-text">B. FÁBRICA DE MONTAJE (Múltiples/Carpeta)</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="input-group">
                     <label>TÍTULO DEL VIDEO (SEO)</label>
-                    <input type="text" id="videoTitle" required placeholder="Ej: La verdad oculta de la IA #Tech #Novum" maxlength="150">
+                    <input type="text" id="videoTitle" required placeholder="Ej: La verdad oculta de la IA #Tech #Novum"
+                        maxlength="150">
                 </div>
 
                 <div class="input-group file-upload-wrapper">
-                    <label>ARCHIVO .MP4 (Max 50MB)</label>
+                    <label>ARCHIVOS DE VIDEO</label>
                     <div class="file-drop-area" id="dropZ">
-                        <span class="file-msg">Toca o arrastra tu video aquí</span>
-                        <input class="file-input" type="file" id="videoFile" accept="video/mp4,video/quicktime" required>
+                        <span class="file-msg">Toca o arrastra tus videos aquí</span>
+                        <input class="file-input" type="file" id="videoFile" accept="video/*" required>
                     </div>
                 </div>
 
@@ -50,4 +68,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>

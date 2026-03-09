@@ -1,62 +1,56 @@
-// Vercel Serverless Function - Gatillo para GitHub Actions
 module.exports = async (req, res) => {
-    // CORS Headers
-    res.setHeader('Access-Control-Allow-Credentials', true)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST')
-
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end()
+    if (req.method !== "POST") {
+        return res.status(405).json({ message: "Metodo no soportado" });
     }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+    const { auth, type, title, uploadedFiles } = req.body;
+
+    // 1. Validar password
+    if (auth !== process.env.PWA_MASTER_PASSWORD) {
+        return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { auth, videoUrl, videoTitle, filename } = req.body || {};
+    // 2. Disparador hacia GitHub
+    const GITHUB_TOKEN = process.env.GITHUB_PAT;
+    const GITHUB_REPO = process.env.GITHUB_REPO; // ej: JoseAQ-19/Auto_def
 
-    // Seguridad: Master Password
-    const MASTER_PASS = process.env.PWA_MASTER_PASSWORD || 'novum666';
-    if (!auth || auth !== MASTER_PASS) {
-        return res.status(401).json({ error: 'Acceso Denegado' });
+    if (!GITHUB_TOKEN || !GITHUB_REPO) {
+        return res.status(500).json({ message: "Configuracion de GitHub faltante en Vercel." });
     }
 
-    const GITHUB_PAT = process.env.GITHUB_PAT;
-    const GITHUB_REPO = process.env.GITHUB_REPO; // ej: "JoseAQ-19/Auto_def" o "usuario/novum-world-ai"
-
-    if (!GITHUB_PAT || !GITHUB_REPO) {
-        console.error("Falta PAT o REPO en vars");
-        return res.status(500).json({ error: 'Configuración de GitHub faltante en servidor' });
-    }
-
+    // Adaptamos el cliente payload según sea unitario o batch para no romper compatibilidad opcional
+    // Enviamos el payload moderno indicando "type" y el arreglo de "files"
     try {
-        // Ejecuta workflow_dispatch o repository_dispatch en el repo
         const githubRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Authorization': `Bearer ${GITHUB_PAT}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json',
+                "Accept": "application/vnd.github.v3+json",
+                "Authorization": `token ${GITHUB_TOKEN}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                event_type: 'video_upload_ready',
+                event_type: "video_upload_ready",
                 client_payload: {
-                    title: videoTitle,
-                    video_url: videoUrl,
-                    file_key: filename
+                    type: type || "single",
+                    title: title,
+                    files: uploadedFiles,
+
+                    // Legacy compatibility if main_phase4 still expects single values
+                    video_url: uploadedFiles[0]?.publicUrl || "",
+                    file_key: uploadedFiles[0]?.filename || ""
                 }
             })
         });
 
         if (!githubRes.ok) {
             const errorText = await githubRes.text();
-            console.error("Fallo GitHub:", errorText);
-            throw new Error(`GitHub Api status: ${githubRes.status}`);
+            console.error("Github Error:", errorText);
+            return res.status(502).json({ message: "Fallo apuntando al Actions V2." });
         }
 
-        res.status(200).json({ success: true, message: 'Señal Github Action enviada con éxito' });
+        return res.status(200).json({ success: true, message: "GitHub Despierto" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error enviando señal al Músculo (Fase 4)' });
+        console.error("Serverless crash:", err);
+        return res.status(500).json({ message: "Fallo crudo al disparar Github." });
     }
 };
