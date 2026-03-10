@@ -45,12 +45,13 @@ def generate_novum_prompt(topic: str) -> str:
         "[Escena 2]: (Describe brevemente la acción visual de la escena). \"(Texto exacto que dirá el personaje)\".\n"
         "(Continúa con las escenas que hagan falta)\n\n"
         "Guion imágenes\n"
-        "(Prompt en INGLÉS muy detallado para la Escena 1. Debe describir el aspecto físico de Novum y/o los invitados, la iluminación de neón/oscura, el entorno y la cámara).\n\n"
-        "(Prompt en INGLÉS muy detallado para la Escena 2).\n\n"
-        "(Prompt en INGLÉS muy detallado para la Escena 3).\n\n"
+        "(Prompt en INGLÉS para la Escena 1. REGLA VITAL: NO describas el aspecto físico de Novum. Asume que el software ya tiene su foto de referencia. Solo escribe \"The main character\" y describe su ACCIÓN, el ENTORNO, los INVITADOS y la ILUMINACIÓN).\n\n"
+        "(Prompt en INGLÉS para la Escena 2. Igual que arriba: cero descripciones físicas de Novum).\n\n"
+        "(Prompt en INGLÉS para la Escena 3. Igual que arriba).\n\n"
         "REGLAS TÉCNICAS INQUEBRANTABLES PARA EL 'GUION IMÁGENES':\n"
-        "No uses viñetas, ni números, ni pongas \"Escena X\" en esta sección. Escribe solo el texto crudo del prompt visual en inglés.\n"
-        "Tienes que separar CADA prompt del siguiente OBLIGATORIAMENTE dejando una línea en blanco (un doble Enter). Esto es crítico para el software de automatización."
+        "PROHIBIDO usar palabras como \"alien, red skin, octopus, tentacles\". Si lo haces, el generador de IA romperá la imagen de referencia. Llama a Novum simplemente \"The main character\".\n"
+        "No uses viñetas, ni números.\n"
+        "Tienes que separar CADA prompt del siguiente OBLIGATORIAMENTE dejando una línea en blanco (un doble Enter)."
     )
     
     user_prompt = f"El tema destacado del día extraído de Google Search Console es: '{topic}'. Genera tu Mega Prompt analizando rápidamente este hito para el humano."
