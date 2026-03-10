@@ -86,7 +86,8 @@ def run_phase4():
                                 "categoryId": "22",
                                 "tags": tags,
                                 "privacyStatus": privacy
-                            }
+                            },
+                            dangerously_skip_version_check=True
                         )
                     except Exception as ye:
                         print(f"⚠️ Error subiendo a YouTube: {ye}")
@@ -105,7 +106,8 @@ def run_phase4():
                                 "caption": description,
                                 "privacy_level": "SELF_ONLY",
                                 "publish": True
-                            }
+                            },
+                            dangerously_skip_version_check=True
                         )
                     except Exception as te:
                         print(f"⚠️ Error subiendo a TikTok: {te}")
@@ -123,7 +125,8 @@ def run_phase4():
                                 "video_url": url,
                                 "caption": description,
                                 "media_type": "REELS"
-                            }
+                            },
+                            dangerously_skip_version_check=True
                         )
                         print(f"Container result: {container}")
                         
@@ -149,7 +152,8 @@ def run_phase4():
                             post_res = composio_client.tools.execute(
                                 "INSTAGRAM_CREATE_POST",
                                 user_id=USER_ID,
-                                arguments=post_args
+                                arguments=post_args,
+                                dangerously_skip_version_check=True
                             )
                             print(f"Post result: {post_res}")
                         else:
