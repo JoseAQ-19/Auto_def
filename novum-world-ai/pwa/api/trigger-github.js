@@ -31,19 +31,21 @@ module.exports = async (req, res) => {
             body: JSON.stringify({
                 event_type: "video_upload_ready",
                 client_payload: {
-                    type: type || "single",
-                    title: title,
-                    description: description || "",
-                    hashtags: hashtags || "",
-                    privacy: privacy || "private",
-                    dest_youtube: destinations?.youtube ? "true" : "false",
-                    dest_instagram: destinations?.instagram ? "true" : "false",
-                    dest_tiktok: destinations?.tiktok ? "true" : "false",
-                    files: uploadedFiles,
+                    metadata: {
+                        type: type || "single",
+                        title: title,
+                        description: description || "",
+                        hashtags: hashtags || "",
+                        privacy: privacy || "private",
+                        dest_youtube: destinations?.youtube ? "true" : "false",
+                        dest_instagram: destinations?.instagram ? "true" : "false",
+                        dest_tiktok: destinations?.tiktok ? "true" : "false",
+                        files: uploadedFiles,
 
-                    // Legacy compatibility if main_phase4 still expects single values
-                    video_url: uploadedFiles[0]?.publicUrl || "",
-                    file_key: uploadedFiles[0]?.filename || ""
+                        // Legacy compatibility if main_phase4 still expects single values
+                        video_url: uploadedFiles[0]?.publicUrl || "",
+                        file_key: uploadedFiles[0]?.filename || ""
+                    }
                 }
             })
         });
