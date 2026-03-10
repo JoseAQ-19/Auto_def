@@ -65,9 +65,12 @@ def run_phase4():
                 toolset.execute_action(
                     action=getattr(Action, "YOUTUBE_CREATE_VIDEO", "YOUTUBE_CREATE_VIDEO"),
                     params={
-                        "file_path": local_path,
-                        "title": title,
-                        "description": f"Novum World 🦑\n\n#AI #Tech #Shorts\n{title}"
+                        "videoFilePath": local_path,
+                        "title": f"{title} #Shorts",
+                        "description": f"Vídeo generado por IA. #Shorts #Novum #IA\n\n{title}",
+                        "categoryId": '22',
+                        "privacyStatus": 'private',
+                        "tags": ["shorts", "novum", "ia", "youtube shorts"]
                     }
                 )
                 
