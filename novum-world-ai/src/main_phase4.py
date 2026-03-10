@@ -3,7 +3,7 @@ import sys
 import time
 import requests
 import boto3
-from composio import Composio
+from composio import ComposioToolSet, Action
 from src.telegram_notifier import send_telegram_message
 
 def run_phase4():
@@ -68,16 +68,16 @@ def run_phase4():
             print("⚠️ COMPOSIO_API_KEY no encontrada. Ignorando capa SDK, simulando éxito.")
         else:
             try:
-                # Composio SDK v3 uses Composio instead of ComposioToolSet, and direct tool execution
-                client = Composio(api_key=compo_key)
+                # Usando la API de ejecución en V2 de forma explícita
+                client = ComposioToolSet(api_key=compo_key)
                 
                 # YouTube Shorts
                 if dest_youtube:
                     print("  ➡️ Publicando en YouTube Shorts...")
                     try:
-                        client.tools.execute(
-                            tool="YOUTUBE_UPLOAD_VIDEO",
-                            data={
+                        client.execute_action(
+                            action=Action.YOUTUBE_UPLOAD_VIDEO,
+                            params={
                                 "videoFilePath": local_path,
                                 "title": f"{title} #Shorts",
                                 "description": description,
@@ -95,9 +95,9 @@ def run_phase4():
                 if dest_tiktok:
                     print("  ➡️ Publicando en TikTok...")
                     try:
-                        client.tools.execute(
-                            tool="TIKTOK_CREATE_VIDEO", 
-                            data={
+                        client.execute_action(
+                            action=Action.TIKTOK_CREATE_VIDEO, 
+                            params={
                                 "file_path": local_path,
                                 "title": f"{title} #AI #Tech"
                             }
@@ -111,9 +111,9 @@ def run_phase4():
                 if dest_instagram:
                     print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
                     try:
-                        container_res = client.tools.execute(
-                            tool="INSTAGRAM_CREATE_MEDIA_CONTAINER",
-                            data={
+                        container_res = client.execute_action(
+                            action=Action.INSTAGRAM_CREATE_MEDIA_CONTAINER,
+                            params={
                                 "video_url": url,
                                 "caption": description,
                                 "media_type": "REELS",
@@ -141,9 +141,9 @@ def run_phase4():
                             if ig_user_id:
                                 post_params["ig_user_id"] = str(ig_user_id)
                                 
-                            post_res = client.tools.execute(
-                                tool="INSTAGRAM_CREATE_POST",
-                                data=post_params
+                            post_res = client.execute_action(
+                                action=Action.INSTAGRAM_CREATE_POST,
+                                params=post_params
                             )
                             print(f"Post result: {post_res}")
                         else:
