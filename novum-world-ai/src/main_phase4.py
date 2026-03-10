@@ -75,7 +75,7 @@ def run_phase4():
                     print("  ➡️ Publicando en YouTube Shorts...")
                     try:
                         toolset.execute_action(
-                            action=getattr(Action, "YOUTUBE_UPLOAD_VIDEO", "YOUTUBE_UPLOAD_VIDEO"),
+                            action=Action.YOUTUBE_UPLOAD_VIDEO,
                             params={
                                 "videoFilePath": local_path,
                                 "title": f"{title} #Shorts",
@@ -95,7 +95,7 @@ def run_phase4():
                     print("  ➡️ Publicando en TikTok...")
                     try:
                         toolset.execute_action(
-                            action=getattr(Action, "TIKTOK_CREATE_VIDEO", "TIKTOK_CREATE_VIDEO"), 
+                            action=Action.TIKTOK_CREATE_VIDEO, 
                             params={
                                 "file_path": local_path,
                                 "title": f"{title} #AI #Tech"
@@ -111,7 +111,7 @@ def run_phase4():
                     print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
                     try:
                         container_res = toolset.execute_action(
-                            action=getattr(Action, "INSTAGRAM_CREATE_MEDIA_CONTAINER", "INSTAGRAM_CREATE_MEDIA_CONTAINER"),
+                            action=Action.INSTAGRAM_CREATE_MEDIA_CONTAINER,
                             params={
                                 "video_url": url,
                                 "caption": description,
@@ -141,7 +141,7 @@ def run_phase4():
                                 post_params["ig_user_id"] = str(ig_user_id)
                                 
                             post_res = toolset.execute_action(
-                                action=getattr(Action, "INSTAGRAM_CREATE_POST", "INSTAGRAM_CREATE_POST"),
+                                action=Action.INSTAGRAM_CREATE_POST,
                                 params=post_params
                             )
                             print(f"Post result: {post_res}")
