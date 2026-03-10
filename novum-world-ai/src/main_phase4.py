@@ -13,9 +13,10 @@ def run_phase4():
     file_key = os.environ.get("FILE_KEY")
     
     if not all([title, url, file_key]):
-        send_telegram_message("❌ Error Crítico: Payload de PWA incompleto (Faltan variables en GitHub Actions).")
-        sys.exit(1)
-        
+        try:
+            send_telegram_message("❌ Error Crítico: Payload de PWA incompleto (Faltan variables en GitHub Actions).")
+        except Exception as e:
+            print(f"⚠️ Error al enviar alerta de payload a Telegram: {e}")
     print(f"📥 1/3 - Descargando video desde R2: {file_key}...")
     local_path = f"/tmp/{file_key}"
     try:
@@ -27,9 +28,11 @@ def run_phase4():
                     f.write(chunk)
         print("✅ Descarga completada localmente en GitHub Action runner.")
     except Exception as e:
-        send_telegram_message(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
-        sys.exit(1)
-        
+        print(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
+        try:
+            send_telegram_message(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
+        except Exception as te:
+            print(f"⚠️ Error al enviar alerta de descarga a Telegram: {te}")
     print("🚀 2/3 - Iniciando distribución vía SDK oficial de Composio...")
     
     compo_key = os.environ.get("COMPOSIO_API_KEY")
@@ -97,12 +100,15 @@ def run_phase4():
         print(f"⚠️ No se pudo borrar el archivo R2: {e}")
         
     print("📲 Enviando notificación de éxito al humano...")
-    send_telegram_message(
-        f"✅ *Secuencia Upload Completada*\n\n"
-        f"Vídeo: '{title}' distribuido automágicamente al mundo.\n\n"
-        f"Rastro en Cloudflare R2 eliminado. Cero fricción, cero coste.\n"
-        f"Vuelve a tu cueva."
-    )
+    try:
+        send_telegram_message(
+            f"✅ *Secuencia Upload Completada*\n\n"
+            f"Vídeo: '{title}' distribuido automágicamente al mundo.\n\n"
+            f"Rastro en Cloudflare R2 eliminado. Cero fricción, cero coste.\n"
+            f"Vuelve a tu cueva."
+        )
+    except Exception as e:
+        print(f"⚠️ Error al confirmar éxito final a Telegram: {e}")
     print("🏁 Fase 4 GSD Completada a la perfección.")
 
 if __name__ == "__main__":
