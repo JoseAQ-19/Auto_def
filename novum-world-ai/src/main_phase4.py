@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import requests
 import boto3
 from composio import ComposioToolSet, Action
@@ -85,14 +86,44 @@ def run_phase4():
                 )
 
                 # Instagram Reels
-                print("  ➡️ Publicando en Instagram Reels...")
-                toolset.execute_action(
-                    action=getattr(Action, "INSTAGRAM_CREATE_REEL", "INSTAGRAM_CREATE_REEL"),
+                print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
+                container_res = toolset.execute_action(
+                    action=getattr(Action, "INSTAGRAM_CREATE_MEDIA_CONTAINER", "INSTAGRAM_CREATE_MEDIA_CONTAINER"),
                     params={
-                        "file_path": local_path,
-                        "caption": f"{title} 🦑 #AI #Shorts"
+                        "video_url": url,
+                        "caption": f"Vídeo generado por IA #Shorts #Reels #IA #Novum\n\n{title}",
+                        "media_type": "REELS",
+                        "content_type": "reel"
                     }
                 )
+                print(f"Container result: {container_res}")
+                
+                # Extraemos ids por si vienen anidados
+                container_id = None
+                ig_user_id = None
+                
+                if isinstance(container_res, dict):
+                    # Intentamos prever la estructura de retorno base/data
+                    data = container_res.get("data", container_res)
+                    container_id = data.get("id") or container_res.get("id")
+                    ig_user_id = data.get("ig_user_id") or container_res.get("ig_user_id")
+                    
+                if container_id:
+                    print(f"  ⏳ Esperando 30 segundos para que Meta procese el contenedor {container_id}...")
+                    time.sleep(30)
+                    print("  ➡️ Publicando en Instagram Reels (Paso 2: Post)...")
+                    
+                    post_params = {"creation_id": str(container_id)}
+                    if ig_user_id:
+                        post_params["ig_user_id"] = str(ig_user_id)
+                        
+                    post_res = toolset.execute_action(
+                        action=getattr(Action, "INSTAGRAM_CREATE_POST", "INSTAGRAM_CREATE_POST"),
+                        params=post_params
+                    )
+                    print(f"Post result: {post_res}")
+                else:
+                    print("⚠️ No se pudo obtener el creation_id del Paso 1 (Container). Log: ", container_res)
                 
                 print("✅ Composio Pipeline ejecutado (Todos los conectores activos han procesado el upload a redes).")
             except Exception as e:
