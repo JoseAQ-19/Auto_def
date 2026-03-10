@@ -12,6 +12,15 @@ def run_phase4():
     title = os.environ.get("VIDEO_TITLE")
     url = os.environ.get("VIDEO_URL")
     file_key = os.environ.get("FILE_KEY")
+    description = os.environ.get("VIDEO_DESCRIPTION") or f"Vídeo generado por IA. #Shorts #Novum #IA\n\n{title}"
+    hashtags_raw = os.environ.get("VIDEO_HASHTAGS") or "shorts, novum, ia, youtube shorts"
+    privacy = os.environ.get("VIDEO_PRIVACY") or "private"
+    
+    tags = [tag.strip() for tag in hashtags_raw.split(',')] if hashtags_raw else []
+
+    dest_youtube = os.environ.get("DEST_YOUTUBE") == "true"
+    dest_instagram = os.environ.get("DEST_INSTAGRAM") == "true"
+    dest_tiktok = os.environ.get("DEST_TIKTOK") == "true"
     
     if not all([title, url, file_key]):
         try:
@@ -62,68 +71,86 @@ def run_phase4():
                 toolset = ComposioToolSet(api_key=compo_key)
                 
                 # YouTube Shorts
-                print("  ➡️ Publicando en YouTube Shorts...")
-                toolset.execute_action(
-                    action=getattr(Action, "YOUTUBE_CREATE_VIDEO", "YOUTUBE_CREATE_VIDEO"),
-                    params={
-                        "videoFilePath": local_path,
-                        "title": f"{title} #Shorts",
-                        "description": f"Vídeo generado por IA. #Shorts #Novum #IA\n\n{title}",
-                        "categoryId": '22',
-                        "privacyStatus": 'private',
-                        "tags": ["shorts", "novum", "ia", "youtube shorts"]
-                    }
-                )
+                if dest_youtube:
+                    print("  ➡️ Publicando en YouTube Shorts...")
+                    try:
+                        toolset.execute_action(
+                            action=getattr(Action, "YOUTUBE_UPLOAD_VIDEO", "YOUTUBE_UPLOAD_VIDEO"),
+                            params={
+                                "videoFilePath": local_path,
+                                "title": f"{title} #Shorts",
+                                "description": description,
+                                "categoryId": '22',
+                                "privacyStatus": privacy,
+                                "tags": tags
+                            }
+                        )
+                    except Exception as ye:
+                        print(f"⚠️ Error subiendo a YouTube: {ye}")
+                else:
+                    print("  ⏭️ Omitiendo YouTube Shorts (no seleccionado).")
                 
                 # TikTok 
-                print("  ➡️ Publicando en TikTok...")
-                toolset.execute_action(
-                    action=getattr(Action, "TIKTOK_CREATE_VIDEO", "TIKTOK_CREATE_VIDEO"), 
-                    params={
-                        "file_path": local_path,
-                        "title": f"{title} #AI #Tech"
-                    }
-                )
+                if dest_tiktok:
+                    print("  ➡️ Publicando en TikTok...")
+                    try:
+                        toolset.execute_action(
+                            action=getattr(Action, "TIKTOK_CREATE_VIDEO", "TIKTOK_CREATE_VIDEO"), 
+                            params={
+                                "file_path": local_path,
+                                "title": f"{title} #AI #Tech"
+                            }
+                        )
+                    except Exception as te:
+                        print(f"⚠️ Error subiendo a TikTok: {te}")
+                else:
+                    print("  ⏭️ Omitiendo TikTok (no seleccionado).")
 
                 # Instagram Reels
-                print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
-                container_res = toolset.execute_action(
-                    action=getattr(Action, "INSTAGRAM_CREATE_MEDIA_CONTAINER", "INSTAGRAM_CREATE_MEDIA_CONTAINER"),
-                    params={
-                        "video_url": url,
-                        "caption": f"Vídeo generado por IA #Shorts #Reels #IA #Novum\n\n{title}",
-                        "media_type": "REELS",
-                        "content_type": "reel"
-                    }
-                )
-                print(f"Container result: {container_res}")
-                
-                # Extraemos ids por si vienen anidados
-                container_id = None
-                ig_user_id = None
-                
-                if isinstance(container_res, dict):
-                    # Intentamos prever la estructura de retorno base/data
-                    data = container_res.get("data", container_res)
-                    container_id = data.get("id") or container_res.get("id")
-                    ig_user_id = data.get("ig_user_id") or container_res.get("ig_user_id")
-                    
-                if container_id:
-                    print(f"  ⏳ Esperando 30 segundos para que Meta procese el contenedor {container_id}...")
-                    time.sleep(30)
-                    print("  ➡️ Publicando en Instagram Reels (Paso 2: Post)...")
-                    
-                    post_params = {"creation_id": str(container_id)}
-                    if ig_user_id:
-                        post_params["ig_user_id"] = str(ig_user_id)
+                if dest_instagram:
+                    print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
+                    try:
+                        container_res = toolset.execute_action(
+                            action=getattr(Action, "INSTAGRAM_CREATE_MEDIA_CONTAINER", "INSTAGRAM_CREATE_MEDIA_CONTAINER"),
+                            params={
+                                "video_url": url,
+                                "caption": description,
+                                "media_type": "REELS",
+                                "content_type": "reel"
+                            }
+                        )
+                        print(f"Container result: {container_res}")
                         
-                    post_res = toolset.execute_action(
-                        action=getattr(Action, "INSTAGRAM_CREATE_POST", "INSTAGRAM_CREATE_POST"),
-                        params=post_params
-                    )
-                    print(f"Post result: {post_res}")
+                        # Extraemos ids por si vienen anidados
+                        container_id = None
+                        ig_user_id = None
+                        
+                        if isinstance(container_res, dict):
+                            # Intentamos prever la estructura de retorno base/data
+                            data = container_res.get("data", container_res)
+                            container_id = data.get("id") or container_res.get("id")
+                            ig_user_id = data.get("ig_user_id") or container_res.get("ig_user_id")
+                            
+                        if container_id:
+                            print(f"  ⏳ Esperando 30 segundos para que Meta procese el contenedor {container_id}...")
+                            time.sleep(30)
+                            print("  ➡️ Publicando en Instagram Reels (Paso 2: Post)...")
+                            
+                            post_params = {"creation_id": str(container_id)}
+                            if ig_user_id:
+                                post_params["ig_user_id"] = str(ig_user_id)
+                                
+                            post_res = toolset.execute_action(
+                                action=getattr(Action, "INSTAGRAM_CREATE_POST", "INSTAGRAM_CREATE_POST"),
+                                params=post_params
+                            )
+                            print(f"Post result: {post_res}")
+                        else:
+                            print("⚠️ No se pudo obtener el creation_id del Paso 1 (Container). Log: ", container_res)
+                    except Exception as ie:
+                        print(f"⚠️ Error subiendo a Instagram Reels: {ie}")
                 else:
-                    print("⚠️ No se pudo obtener el creation_id del Paso 1 (Container). Log: ", container_res)
+                    print("  ⏭️ Omitiendo Instagram Reels (no seleccionado).")
                 
                 print("✅ Composio Pipeline ejecutado (Todos los conectores activos han procesado el upload a redes).")
             except Exception as e:

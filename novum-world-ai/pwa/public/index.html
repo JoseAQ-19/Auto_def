@@ -47,6 +47,44 @@
                         maxlength="150">
                 </div>
 
+                <div class="input-group">
+                    <label>DESCRIPCIÓN DEL VIDEO</label>
+                    <textarea id="videoDescription" rows="4"
+                        placeholder="Describe brevemente el video y añádele el toque cibernético..."></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>HASHTAGS (separados por coma)</label>
+                    <input type="text" id="videoHashtags" placeholder="Ej: shorts, tech, IA, novum">
+                </div>
+
+                <div class="input-group">
+                    <label>PRIVACIDAD</label>
+                    <select id="videoPrivacy" class="cyber-select">
+                        <option value="private">Privado</option>
+                        <option value="unlisted">Oculto</option>
+                        <option value="public">Público</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>REDES DE DESTINO</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="destYoutube" value="youtube" checked>
+                            <span class="checkbox-text">YouTube Shorts</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="destInstagram" value="instagram" checked>
+                            <span class="checkbox-text">Instagram Reels</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="destTiktok" value="tiktok" checked>
+                            <span class="checkbox-text">TikTok</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="input-group file-upload-wrapper">
                     <label>ARCHIVOS DE VIDEO</label>
                     <div class="file-drop-area" id="dropZ">

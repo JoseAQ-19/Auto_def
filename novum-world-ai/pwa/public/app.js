@@ -72,6 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
         const titleText = document.getElementById("videoTitle").value;
 
+        // Metadata extendida
+        const descriptionText = document.getElementById("videoDescription").value;
+        const hashtagsText = document.getElementById("videoHashtags").value;
+        const privacyVal = document.getElementById("videoPrivacy").value;
+
+        // Redes objetivo
+        const destYoutube = document.getElementById("destYoutube").checked;
+        const destInstagram = document.getElementById("destInstagram").checked;
+        const destTiktok = document.getElementById("destTiktok").checked;
+
         submitBtn.disabled = true;
         submitBtn.textContent = "UPLOADING...";
 
@@ -121,6 +131,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     auth: authKey,
                     type: uploadType,
                     title: titleText,
+                    description: descriptionText,
+                    hashtags: hashtagsText,
+                    privacy: privacyVal,
+                    destinations: {
+                        youtube: destYoutube,
+                        instagram: destInstagram,
+                        tiktok: destTiktok
+                    },
                     uploadedFiles: uploadedFilesData
                 })
             });

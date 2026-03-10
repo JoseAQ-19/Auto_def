@@ -3,7 +3,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: "Metodo no soportado" });
     }
 
-    const { auth, type, title, uploadedFiles } = req.body;
+    const { auth, type, title, description, hashtags, privacy, destinations, uploadedFiles } = req.body;
 
     // 1. Validar password
     if (auth !== process.env.PWA_MASTER_PASSWORD) {
@@ -33,6 +33,12 @@ module.exports = async (req, res) => {
                 client_payload: {
                     type: type || "single",
                     title: title,
+                    description: description || "",
+                    hashtags: hashtags || "",
+                    privacy: privacy || "private",
+                    dest_youtube: destinations?.youtube ? "true" : "false",
+                    dest_instagram: destinations?.instagram ? "true" : "false",
+                    dest_tiktok: destinations?.tiktok ? "true" : "false",
                     files: uploadedFiles,
 
                     // Legacy compatibility if main_phase4 still expects single values

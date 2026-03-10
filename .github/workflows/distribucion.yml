@@ -30,6 +30,12 @@ jobs:
           VIDEO_TITLE: ${{ github.event.client_payload.title }}
           VIDEO_URL: ${{ github.event.client_payload.video_url }}
           FILE_KEY: ${{ github.event.client_payload.file_key }}
+          VIDEO_DESCRIPTION: ${{ github.event.client_payload.description }}
+          VIDEO_HASHTAGS: ${{ github.event.client_payload.hashtags }}
+          VIDEO_PRIVACY: ${{ github.event.client_payload.privacy }}
+          DEST_YOUTUBE: ${{ github.event.client_payload.dest_youtube }}
+          DEST_INSTAGRAM: ${{ github.event.client_payload.dest_instagram }}
+          DEST_TIKTOK: ${{ github.event.client_payload.dest_tiktok }}
           
           # Entorno Estático de Seguridad (Secretos)
           COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
