@@ -2,4 +2,4 @@ google-api-python-client==2.118.0
 google-auth==2.28.1
 openai>=1.40.0
 requests==2.31.0
-composio-core==0.5.5
+composio

@@ -3,19 +3,12 @@ import sys
 import time
 import requests
 import boto3
-from composio import ComposioToolSet, Action
+from composio import Composio
 from src.telegram_notifier import send_telegram_message
 
 def run_phase4():
     print("▶ Iniciando Fase 4: Distribución Multiplataforma (El Músculo) 💪")
     
-    try:
-        print("🕵️♂️ YOUTUBE ACTIONS:", [a.name for a in Action if 'YOUTUBE' in a.name])
-        print("🕵️♂️ TIKTOK ACTIONS:", [a.name for a in Action if 'TIKTOK' in a.name])
-        print("🕵️♂️ INSTAGRAM ACTIONS:", [a.name for a in Action if 'INSTAGRAM' in a.name])
-    except Exception as e:
-        print("Error leyendo el diccionario Action:", e)
-        
     title = os.environ.get("VIDEO_TITLE")
     url = os.environ.get("VIDEO_URL")
     file_key = os.environ.get("FILE_KEY")
@@ -75,22 +68,24 @@ def run_phase4():
             print("⚠️ COMPOSIO_API_KEY no encontrada. Ignorando capa SDK, simulando éxito.")
         else:
             try:
-                # Usando la API de ejecución en V2 de forma explícita
-                client = ComposioToolSet(api_key=compo_key)
+                # Instantiate Composio client for v3
+                composio_client = Composio(api_key=compo_key)
+                USER_ID = "default"
                 
                 # YouTube Shorts
                 if dest_youtube:
                     print("  ➡️ Publicando en YouTube Shorts...")
                     try:
-                        client.execute_action(
-                            action=Action.YOUTUBE_UPLOAD_VIDEO,
-                            params={
+                        composio_client.tools.execute(
+                            "YOUTUBE_UPLOAD_VIDEO",
+                            user_id=USER_ID,
+                            arguments={
                                 "videoFilePath": local_path,
                                 "title": f"{title} #Shorts",
                                 "description": description,
-                                "categoryId": '22',
-                                "privacyStatus": privacy,
-                                "tags": tags
+                                "categoryId": "22",
+                                "tags": tags,
+                                "privacyStatus": privacy
                             }
                         )
                     except Exception as ye:
@@ -102,11 +97,14 @@ def run_phase4():
                 if dest_tiktok:
                     print("  ➡️ Publicando en TikTok...")
                     try:
-                        client.execute_action(
-                            action=Action.TIKTOK_CREATE_VIDEO, 
-                            params={
-                                "file_path": local_path,
-                                "title": f"{title} #AI #Tech"
+                        composio_client.tools.execute(
+                            "TIKTOK_UPLOAD_VIDEO", 
+                            user_id=USER_ID,
+                            arguments={
+                                "file_to_upload": local_path,
+                                "caption": description,
+                                "privacy_level": "SELF_ONLY",
+                                "publish": True
                             }
                         )
                     except Exception as te:
@@ -118,43 +116,44 @@ def run_phase4():
                 if dest_instagram:
                     print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
                     try:
-                        container_res = client.execute_action(
-                            action=Action.INSTAGRAM_CREATE_MEDIA_CONTAINER,
-                            params={
+                        container = composio_client.tools.execute(
+                            "INSTAGRAM_CREATE_MEDIA_CONTAINER",
+                            user_id=USER_ID,
+                            arguments={
                                 "video_url": url,
                                 "caption": description,
-                                "media_type": "REELS",
-                                "content_type": "reel"
+                                "media_type": "REELS"
                             }
                         )
-                        print(f"Container result: {container_res}")
+                        print(f"Container result: {container}")
                         
                         # Extraemos ids por si vienen anidados
                         container_id = None
                         ig_user_id = None
                         
-                        if isinstance(container_res, dict):
-                            # Intentamos prever la estructura de retorno base/data
-                            data = container_res.get("data", container_res)
-                            container_id = data.get("id") or container_res.get("id")
-                            ig_user_id = data.get("ig_user_id") or container_res.get("ig_user_id")
+                        if isinstance(container, dict):
+                            # Estructura típica: {"data": {"id": "...", "ig_user_id": "..."}} o similar
+                            data = container.get("data", container)
+                            container_id = data.get("id") or container.get("id")
+                            ig_user_id = data.get("ig_user_id") or container.get("ig_user_id")
                             
                         if container_id:
                             print(f"  ⏳ Esperando 30 segundos para que Meta procese el contenedor {container_id}...")
                             time.sleep(30)
                             print("  ➡️ Publicando en Instagram Reels (Paso 2: Post)...")
                             
-                            post_params = {"creation_id": str(container_id)}
+                            post_args = {"creation_id": str(container_id)}
                             if ig_user_id:
-                                post_params["ig_user_id"] = str(ig_user_id)
+                                post_args["ig_user_id"] = str(ig_user_id)
                                 
-                            post_res = client.execute_action(
-                                action=Action.INSTAGRAM_CREATE_POST,
-                                params=post_params
+                            post_res = composio_client.tools.execute(
+                                "INSTAGRAM_CREATE_POST",
+                                user_id=USER_ID,
+                                arguments=post_args
                             )
                             print(f"Post result: {post_res}")
                         else:
-                            print("⚠️ No se pudo obtener el creation_id del Paso 1 (Container). Log: ", container_res)
+                            print("⚠️ No se pudo obtener el creation_id del Paso 1 (Container). Log: ", container)
                     except Exception as ie:
                         print(f"⚠️ Error subiendo a Instagram Reels: {ie}")
                 else:
