@@ -70,7 +70,7 @@ def run_phase4():
             try:
                 # Instantiate Composio client for v3
                 composio_client = Composio(api_key=compo_key)
-                USER_ID = "default"
+                USER_ID = "pg-test-d66c07c1-fd23-44ca-ac8a-ae717ff90c50"
                 
                 # YouTube Shorts
                 if dest_youtube:
