@@ -53,6 +53,12 @@ def run_phase4():
                         f.write(chunk)
             print("✅ Descarga completada localmente en GitHub Action runner vía GET.")
             download_success = True
+            
+        file_size = os.path.getsize(local_path)
+        print(f"🔍 AUDITORÍA DE ARCHIVO: {local_path} pesa {file_size} bytes.")
+        if file_size == 0:
+            raise ValueError("CRÍTICO: El archivo descargado de R2 pesa 0 bytes. Revisa la lógica de descarga.")
+
     except Exception as e:
         print(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
         try:
@@ -80,7 +86,7 @@ def run_phase4():
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
                             arguments={
-                                "videoFilePath": local_path,
+                                "videoFilePath": os.path.abspath(local_path),
                                 "title": f"{title} #Shorts",
                                 "description": description,
                                 "categoryId": "22",
@@ -102,7 +108,7 @@ def run_phase4():
                             "TIKTOK_UPLOAD_VIDEO", 
                             user_id=USER_ID,
                             arguments={
-                                "file_to_upload": local_path,
+                                "file_to_upload": os.path.abspath(local_path),
                                 "caption": description,
                                 "privacy_level": "SELF_ONLY",
                                 "publish": True
