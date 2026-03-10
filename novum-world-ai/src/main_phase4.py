@@ -9,6 +9,13 @@ from src.telegram_notifier import send_telegram_message
 def run_phase4():
     print("▶ Iniciando Fase 4: Distribución Multiplataforma (El Músculo) 💪")
     
+    try:
+        print("🕵️♂️ YOUTUBE ACTIONS:", [a.name for a in Action if 'YOUTUBE' in a.name])
+        print("🕵️♂️ TIKTOK ACTIONS:", [a.name for a in Action if 'TIKTOK' in a.name])
+        print("🕵️♂️ INSTAGRAM ACTIONS:", [a.name for a in Action if 'INSTAGRAM' in a.name])
+    except Exception as e:
+        print("Error leyendo el diccionario Action:", e)
+        
     title = os.environ.get("VIDEO_TITLE")
     url = os.environ.get("VIDEO_URL")
     file_key = os.environ.get("FILE_KEY")
