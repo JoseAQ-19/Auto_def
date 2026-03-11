@@ -82,6 +82,12 @@ def run_phase4():
                 if dest_youtube:
                     print("  ➡️ Publicando en YouTube Shorts...")
                     try:
+                        yt_tool = composio_client.tools.get("YOUTUBE_UPLOAD_VIDEO")
+                        print("🕵️♂️ ESQUEMA OFICIAL YOUTUBE:", yt_tool.parameters if hasattr(yt_tool, 'parameters') else yt_tool)
+                    except Exception as e:
+                        print("🕵️♂️ Error extrayendo esquema:", e)
+                    
+                    try:
                         composio_client.tools.execute(
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
