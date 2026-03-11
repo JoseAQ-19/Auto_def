@@ -92,7 +92,7 @@ def run_phase4():
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
                             arguments={
-                                "videoFilePath": url, # Pasando URL pública en vez de archivo local
+                                "videoFilePath": os.path.abspath(local_path),
                                 "title": f"{title} #Shorts",
                                 "description": description,
                                 "categoryId": "22",
@@ -130,11 +130,25 @@ def run_phase4():
                 if dest_instagram:
                     print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
                     try:
+                        # Generar Presigned URL para que Meta pueda descargar el archivo temporalmente
+                        s3_client = boto3.client(
+                            's3',
+                            endpoint_url=f"https://{os.environ.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com",
+                            aws_access_key_id=os.environ.get("R2_ACCESS_KEY_ID"),
+                            aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
+                            region_name='auto'
+                        )
+                        url_presigned = s3_client.generate_presigned_url(
+                            'get_object',
+                            Params={'Bucket': os.environ.get("R2_BUCKET_NAME"), 'Key': file_key},
+                            ExpiresIn=3600
+                        )
+
                         container = composio_client.tools.execute(
                             "INSTAGRAM_CREATE_MEDIA_CONTAINER",
                             user_id=USER_ID,
                             arguments={
-                                "video_url": url,
+                                "video_url": url_presigned,
                                 "caption": description,
                                 "media_type": "REELS"
                             },
