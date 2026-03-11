@@ -45,6 +45,7 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
           TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
         run: |
           export PYTHONPATH=$(pwd)
           python -m src.main_phase4

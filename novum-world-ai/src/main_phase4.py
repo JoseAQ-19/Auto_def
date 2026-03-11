@@ -82,8 +82,8 @@ def run_phase4():
                 if dest_youtube:
                     print("  ➡️ Publicando en YouTube Shorts...")
                     try:
-                        yt_tool = composio_client.tools.get("YOUTUBE_UPLOAD_VIDEO")
-                        print("🕵️♂️ ESQUEMA OFICIAL YOUTUBE:", yt_tool.parameters if hasattr(yt_tool, 'parameters') else yt_tool)
+                        yt_tool = composio_client.tools.get(actions=["YOUTUBE_UPLOAD_VIDEO"])
+                        print("🕵️♂️ ESQUEMA OFICIAL YOUTUBE:", yt_tool[0].parameters if hasattr(yt_tool[0], 'parameters') else yt_tool[0])
                     except Exception as e:
                         print("🕵️♂️ Error extrayendo esquema:", e)
                     
@@ -92,7 +92,7 @@ def run_phase4():
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
                             arguments={
-                                "videoFilePath": os.path.abspath(local_path),
+                                "videoFilePath": url, # Pasando URL pública en vez de archivo local
                                 "title": f"{title} #Shorts",
                                 "description": description,
                                 "categoryId": "22",
@@ -114,7 +114,7 @@ def run_phase4():
                             "TIKTOK_UPLOAD_VIDEO", 
                             user_id=USER_ID,
                             arguments={
-                                "file_to_upload": os.path.abspath(local_path),
+                                "file_to_upload": url, # Pasando URL pública en vez de archivo local
                                 "caption": description,
                                 "privacy_level": "SELF_ONLY",
                                 "publish": True
@@ -158,8 +158,14 @@ def run_phase4():
                             print("  ➡️ Publicando en Instagram Reels (Paso 2: Post)...")
                             
                             post_args = {"creation_id": str(container_id)}
-                            if ig_user_id:
+                            
+                            ig_user_env = os.environ.get("IG_USER_ID")
+                            if ig_user_env:
+                                post_args["ig_user_id"] = str(ig_user_env)
+                            elif ig_user_id:
                                 post_args["ig_user_id"] = str(ig_user_id)
+                            else:
+                                print("⚠️ AVISO: No se encontró 'ig_user_id' en Container ni en Variables de Entorno. Instagram fallará sin él.")
                                 
                             post_res = composio_client.tools.execute(
                                 "INSTAGRAM_CREATE_POST",
