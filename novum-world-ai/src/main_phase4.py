@@ -98,6 +98,15 @@ def run_phase4():
             print(f"🔍 AUDITORÍA FFmpeg: El archivo {merged_local} pesa {file_size} bytes.")
             if file_size == 0:
                 raise ValueError("CRÍTICO: El merge de FFmpeg produjo un archivo de 0 bytes.")
+                
+            try:
+                cmd_ffprobe = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", merged_local]
+                duration_str = subprocess.check_output(cmd_ffprobe, text=True).strip()
+                print(f"🔍 AUDITORÍA FFmpeg: Duración exacta del video: {duration_str} segundos")
+                if float(duration_str) > 60.0:
+                    print("⚠️ ALERTA: La duración supera 60.0 segundos. YouTube Shorts cortará o rechazará el procesamiento.")
+            except Exception as e_probe:
+                print(f"⚠️ Error intentando leer duración con ffprobe: {e_probe}")
 
             print("☁️ Subiendo video_final_unido.mp4 a R2...")
             if s3:
@@ -151,21 +160,26 @@ def run_phase4():
                         print("🕵️♂️ Error extrayendo esquema:", e)
                     
                     try:
-                        composio_client.tools.execute(
+                        yt_args = {
+                            "videoFilePath": url_presigned, # Pasando Presigned URL en vez de archivo local
+                            "title": f"{title} #Shorts",
+                            "description": description,
+                            "categoryId": "22",
+                            "tags": tags,
+                            "privacyStatus": privacy
+                        }
+                        
+                        print(f"🔍 [YT DEBUG] Payload inyectado a Composio: {yt_args}")
+                        
+                        yt_res = composio_client.tools.execute(
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
-                            arguments={
-                                "videoFilePath": url_presigned, # Pasando Presigned URL en vez de archivo local
-                                "title": f"{title} #Shorts",
-                                "description": description,
-                                "categoryId": "22",
-                                "tags": tags,
-                                "privacyStatus": privacy
-                            },
+                            arguments=yt_args,
                             dangerously_skip_version_check=True
                         )
+                        print(f"🔍 [YT DEBUG] Raw API Response OK: {yt_res}")
                     except Exception as ye:
-                        print(f"⚠️ Error subiendo a YouTube: {ye}")
+                        print(f"⚠️ Error subiendo a YouTube. Exception Raw:\n{ye}")
                 else:
                     print("  ⏭️ Omitiendo YouTube Shorts (no seleccionado).")
                 
