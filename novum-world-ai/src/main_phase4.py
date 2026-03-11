@@ -180,7 +180,7 @@ def run_phase4():
                     
                     try:
                         yt_args = {
-                            "videoFilePath": merged_local, # Pasando ruta local absoluta
+                            "videoFilePath": "/tmp/video_final_unido.mp4", # Pasando ruta local absoluta LITERAL
                             "title": f"{title} #Shorts",
                             "description": description,
                             "categoryId": "22",
