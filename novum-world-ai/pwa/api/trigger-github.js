@@ -1,21 +1,27 @@
+const crypto = require("crypto");
+
 module.exports = async (req, res) => {
+    const GITHUB_TOKEN = process.env.GITHUB_PAT;
+    const GITHUB_REPO = process.env.GITHUB_REPO;
+    const MASTER_PASSWORD = process.env.PWA_MASTER_PASSWORD;
+
+    // Check environment variables early
+    if (!GITHUB_TOKEN || !GITHUB_REPO || !MASTER_PASSWORD) {
+        return res.status(500).json({ message: "Configuracion faltante en el servidor." });
+    }
+
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Metodo no soportado" });
     }
 
     const { auth, type, title, description, hashtags, privacy, destinations, uploadedFiles } = req.body;
 
-    // 1. Validar password
-    if (auth !== process.env.PWA_MASTER_PASSWORD) {
+    // 1. Validar password con timingSafeEqual
+    const authBuffer = Buffer.from(auth || "");
+    const masterBuffer = Buffer.from(MASTER_PASSWORD);
+
+    if (authBuffer.length !== masterBuffer.length || !crypto.timingSafeEqual(authBuffer, masterBuffer)) {
         return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    // 2. Disparador hacia GitHub
-    const GITHUB_TOKEN = process.env.GITHUB_PAT;
-    const GITHUB_REPO = process.env.GITHUB_REPO; // ej: JoseAQ-19/Auto_def
-
-    if (!GITHUB_TOKEN || !GITHUB_REPO) {
-        return res.status(500).json({ message: "Configuracion de GitHub faltante en Vercel." });
     }
 
     // Adaptamos el cliente payload según sea unitario o batch para no romper compatibilidad opcional
@@ -23,7 +29,7 @@ module.exports = async (req, res) => {
     try {
         // Busqueda infalible del vídeo final ensamblado (Evitando fragmentos o escenas):
         // El vídeo completo (merged) siempre será el que tenga el mayor peso en bytes de toda la tanda subida.
-        const mainVideo = [...uploadedFiles].sort((a, b) => (b.size || 0) - (a.size || 0))[0];
+        const mainVideo = [...(uploadedFiles || [])].sort((a, b) => (b.size || 0) - (a.size || 0))[0];
 
         const githubRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
             method: "POST",
