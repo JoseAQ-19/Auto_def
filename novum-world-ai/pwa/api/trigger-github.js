@@ -21,6 +21,12 @@ module.exports = async (req, res) => {
     // Adaptamos el cliente payload según sea unitario o batch para no romper compatibilidad opcional
     // Enviamos el payload moderno indicando "type" y el arreglo de "files"
     try {
+        // Busqueda inteligente del vídeo final ensamblado (Evitando fragmentos como "Escena-Final")
+        const mainVideo = uploadedFiles.find(f => {
+            const name = f.filename.toLowerCase();
+            return name.includes('merged') || name.includes('completo') || (name.includes('final') && !name.includes('escena'));
+        }) || uploadedFiles[0];
+
         const githubRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
             method: "POST",
             headers: {
@@ -42,9 +48,9 @@ module.exports = async (req, res) => {
                         dest_tiktok: destinations?.tiktok ? "true" : "false",
                         files: uploadedFiles,
 
-                        // Aseguramos distribuir únicamente el vídeo final montado si detectamos múltiples subidas en Batch Mode
-                        video_url: (uploadedFiles.find(f => f.filename.toLowerCase().includes('merged') || f.filename.toLowerCase().includes('final')) || uploadedFiles[0])?.publicUrl || "",
-                        file_key: (uploadedFiles.find(f => f.filename.toLowerCase().includes('merged') || f.filename.toLowerCase().includes('final')) || uploadedFiles[0])?.filename || ""
+                        // Legacy compatibility mapeando el archivo ganador
+                        video_url: mainVideo?.publicUrl || "",
+                        file_key: mainVideo?.filename || ""
                     }
                 }
             })
