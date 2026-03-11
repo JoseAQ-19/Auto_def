@@ -78,6 +78,24 @@ def run_phase4():
                 composio_client = Composio(api_key=compo_key)
                 USER_ID = "pg-test-d66c07c1-fd23-44ca-ac8a-ae717ff90c50"
                 
+                # Generamos una única Presigned URL de 1 hora de validez para burlar el TTL de R2
+                url_presigned = None
+                try:
+                    s3_client = boto3.client(
+                        's3',
+                        endpoint_url=f"https://{os.environ.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com",
+                        aws_access_key_id=os.environ.get("R2_ACCESS_KEY_ID"),
+                        aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
+                        region_name='auto'
+                    )
+                    url_presigned = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': os.environ.get("R2_BUCKET_NAME"), 'Key': file_key},
+                        ExpiresIn=3600
+                    )
+                except Exception as s3e:
+                    print(f"⚠️ Error generando Presigned URL para R2. Fallback a crudo. {s3e}")
+
                 # YouTube Shorts
                 if dest_youtube:
                     print("  ➡️ Publicando en YouTube Shorts...")
@@ -92,7 +110,7 @@ def run_phase4():
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
                             arguments={
-                                "videoFilePath": os.path.abspath(local_path),
+                                "videoFilePath": url_presigned or url, # Pasando Presigned URL en vez de archivo local
                                 "title": f"{title} #Shorts",
                                 "description": description,
                                 "categoryId": "22",
@@ -114,7 +132,7 @@ def run_phase4():
                             "TIKTOK_UPLOAD_VIDEO", 
                             user_id=USER_ID,
                             arguments={
-                                "file_to_upload": url, # Pasando URL pública en vez de archivo local
+                                "file_to_upload": url_presigned or url, # Pasando Presigned URL en vez de archivo local
                                 "caption": description,
                                 "privacy_level": "SELF_ONLY",
                                 "publish": True
@@ -130,20 +148,6 @@ def run_phase4():
                 if dest_instagram:
                     print("  ➡️ Publicando en Instagram Reels (Paso 1: Container)...")
                     try:
-                        # Generar Presigned URL para que Meta pueda descargar el archivo temporalmente
-                        s3_client = boto3.client(
-                            's3',
-                            endpoint_url=f"https://{os.environ.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com",
-                            aws_access_key_id=os.environ.get("R2_ACCESS_KEY_ID"),
-                            aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
-                            region_name='auto'
-                        )
-                        url_presigned = s3_client.generate_presigned_url(
-                            'get_object',
-                            Params={'Bucket': os.environ.get("R2_BUCKET_NAME"), 'Key': file_key},
-                            ExpiresIn=3600
-                        )
-
                         container = composio_client.tools.execute(
                             "INSTAGRAM_CREATE_MEDIA_CONTAINER",
                             user_id=USER_ID,
