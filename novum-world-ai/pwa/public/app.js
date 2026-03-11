@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: file
                 }).then(uploadRes => {
                     if (!uploadRes.ok) throw new Error(`Fallo subiendo: ${file.name}`);
-                    return { filename, publicUrl };
+                    return { filename, publicUrl, size: file.size };
                 });
             });
 

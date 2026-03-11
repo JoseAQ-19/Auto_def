@@ -21,11 +21,9 @@ module.exports = async (req, res) => {
     // Adaptamos el cliente payload según sea unitario o batch para no romper compatibilidad opcional
     // Enviamos el payload moderno indicando "type" y el arreglo de "files"
     try {
-        // Busqueda inteligente del vídeo final ensamblado (Evitando fragmentos como "Escena-Final")
-        const mainVideo = uploadedFiles.find(f => {
-            const name = f.filename.toLowerCase();
-            return name.includes('merged') || name.includes('completo') || (name.includes('final') && !name.includes('escena'));
-        }) || uploadedFiles[0];
+        // Busqueda infalible del vídeo final ensamblado (Evitando fragmentos o escenas):
+        // El vídeo completo (merged) siempre será el que tenga el mayor peso en bytes de toda la tanda subida.
+        const mainVideo = [...uploadedFiles].sort((a, b) => (b.size || 0) - (a.size || 0))[0];
 
         const githubRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
             method: "POST",
