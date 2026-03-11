@@ -21,10 +21,6 @@ module.exports = async (req, res) => {
     // Adaptamos el cliente payload según sea unitario o batch para no romper compatibilidad opcional
     // Enviamos el payload moderno indicando "type" y el arreglo de "files"
     try {
-        // Busqueda infalible del vídeo final ensamblado (Evitando fragmentos o escenas):
-        // El vídeo completo (merged) siempre será el que tenga el mayor peso en bytes de toda la tanda subida.
-        const mainVideo = [...uploadedFiles].sort((a, b) => (b.size || 0) - (a.size || 0))[0];
-
         const githubRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
             method: "POST",
             headers: {
@@ -44,11 +40,7 @@ module.exports = async (req, res) => {
                         dest_youtube: destinations?.youtube ? "true" : "false",
                         dest_instagram: destinations?.instagram ? "true" : "false",
                         dest_tiktok: destinations?.tiktok ? "true" : "false",
-                        files: uploadedFiles,
-
-                        // Legacy compatibility mapeando el archivo ganador
-                        video_url: mainVideo?.publicUrl || "",
-                        file_key: mainVideo?.filename || ""
+                        files: uploadedFiles
                     }
                 }
             })

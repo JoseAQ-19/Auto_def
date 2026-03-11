@@ -3,6 +3,8 @@ import sys
 import time
 import requests
 import boto3
+import json
+import subprocess
 from composio import Composio
 from src.telegram_notifier import send_telegram_message
 
@@ -10,8 +12,14 @@ def run_phase4():
     print("▶ Iniciando Fase 4: Distribución Multiplataforma (El Músculo) 💪")
     
     title = os.environ.get("VIDEO_TITLE")
-    url = os.environ.get("VIDEO_URL")
-    file_key = os.environ.get("FILE_KEY")
+    video_files_json = os.environ.get("VIDEO_FILES_JSON")
+    files_data = []
+    if video_files_json:
+        try:
+            files_data = json.loads(video_files_json)
+        except Exception as e:
+            print(f"⚠️ Error parseando VIDEO_FILES_JSON: {e}")
+    
     description = os.environ.get("VIDEO_DESCRIPTION") or f"Vídeo generado por IA. #Shorts #Novum #IA\n\n{title}"
     hashtags_raw = os.environ.get("VIDEO_HASHTAGS") or "shorts, novum, ia, youtube shorts"
     privacy = os.environ.get("VIDEO_PRIVACY") or "private"
@@ -22,52 +30,89 @@ def run_phase4():
     dest_instagram = os.environ.get("DEST_INSTAGRAM") == "true"
     dest_tiktok = os.environ.get("DEST_TIKTOK") == "true"
     
-    if not all([title, url, file_key]):
+    if not all([title, files_data]):
         try:
-            send_telegram_message("❌ Error Crítico: Payload de PWA incompleto (Faltan variables en GitHub Actions).")
+            send_telegram_message("❌ Error Crítico: Payload de PWA incompleto (Faltan variables o array 'files' vacío).")
         except Exception as e:
             print(f"⚠️ Error al enviar alerta de payload a Telegram: {e}")
-    print(f"📥 1/3 - Descargando video desde R2: {file_key}...")
-    local_path = f"/tmp/{file_key}"
+        return
+
+    print("📥 1/3 - Descargando fragmentos de video desde R2...")
+    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    bucket = os.environ.get("R2_BUCKET_NAME")
+    s3 = None
+    if account_id and bucket:
+        s3 = boto3.client(
+            's3',
+            endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
+            aws_access_key_id=os.environ.get("R2_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
+            region_name='auto'
+        )
+
+    downloaded_paths = []
+    lista_path = "/tmp/lista.txt"
     download_success = False
     try:
-        account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
-        bucket = os.environ.get("R2_BUCKET_NAME")
-        if account_id and bucket:
-            s3 = boto3.client(
-                's3',
-                endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
-                aws_access_key_id=os.environ.get("R2_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
-                region_name='auto'
-            )
-            s3.download_file(bucket, file_key, local_path)
-            print("✅ Descarga completada localmente en GitHub Action runner vía boto3.")
-            download_success = True
-        else:
-            print("⚠️ Credenciales de R2 incompletas, intentando GET fallback...")
-            with requests.get(url, stream=True) as r:
-                r.raise_for_status()
-                with open(local_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
-            print("✅ Descarga completada localmente en GitHub Action runner vía GET.")
-            download_success = True
-            
-        file_size = os.path.getsize(local_path)
-        print(f"🔍 AUDITORÍA DE ARCHIVO: {local_path} pesa {file_size} bytes.")
-        if file_size == 0:
-            raise ValueError("CRÍTICO: El archivo descargado de R2 pesa 0 bytes. Revisa la lógica de descarga.")
-
+        with open(lista_path, "w") as f_list:
+            for idx, fd in enumerate(files_data):
+                fkey = fd.get("filename")
+                furl = fd.get("publicUrl")
+                if not fkey: continue
+                lpath = f"/tmp/{fkey}"
+                
+                print(f"  > Descargando {fkey}...")
+                if s3:
+                    s3.download_file(bucket, fkey, lpath)
+                else:
+                    with requests.get(furl, stream=True) as r:
+                        r.raise_for_status()
+                        with open(lpath, 'wb') as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                downloaded_paths.append(lpath)
+                f_list.write(f"file '{lpath}'\n")
+        print("✅ Descargas completadas localmente.")
+        download_success = True
     except Exception as e:
-        print(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
+        print(f"❌ Error descargando MP4s desde Cloudflare R2: {e}")
         try:
-            send_telegram_message(f"❌ Error descargando el MP4 desde Cloudflare R2: {e}")
-        except Exception as te:
-            print(f"⚠️ Error al enviar alerta de descarga a Telegram: {te}")
+            send_telegram_message(f"❌ Error descargando MP4s desde Cloudflare R2: {e}")
+        except Exception as te: pass
+
+    merged_local = "/tmp/video_final_unido.mp4"
+    merged_file_key = "video_final_unido.mp4"
+    if download_success and files_data:
+        print("🎬 Ejecutando FFmpeg merge local...")
+        try:
+            cmd = [
+                "ffmpeg", "-f", "concat", "-safe", "0", "-i", lista_path,
+                "-c:v", "libx264", "-preset", "fast", "-profile:v", "main",
+                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+                "-movflags", "+faststart", "-y", merged_local
+            ]
+            subprocess.run(cmd, check=True)
+            print("✅ FFmpeg merge exitoso.")
+            
+            file_size = os.path.getsize(merged_local)
+            print(f"🔍 AUDITORÍA FFmpeg: El archivo {merged_local} pesa {file_size} bytes.")
+            if file_size == 0:
+                raise ValueError("CRÍTICO: El merge de FFmpeg produjo un archivo de 0 bytes.")
+
+            print("☁️ Subiendo video_final_unido.mp4 a R2...")
+            if s3:
+                s3.upload_file(merged_local, bucket, merged_file_key)
+                print("✅ Subida exitosa a R2.")
+            else:
+                print("⚠️ Faltan credenciales S3, no subimos a R2.")
+                download_success = False
+        except Exception as e:
+            print(f"❌ Error crítico en FFmpeg o subida R2: {e}")
+            download_success = False
+
     print("🚀 2/3 - Iniciando distribución vía SDK oficial de Composio...")
     if not download_success:
-        print("⚠️ Descarga fallida. Saltando el paso de Composio para no intentar subir un archivo inexistente.")
+        print("⚠️ Proceso inicial fallido. Saltando Composio.")
     else:
         compo_key = os.environ.get("COMPOSIO_API_KEY")
         if not compo_key:
@@ -90,7 +135,7 @@ def run_phase4():
                     )
                     url_presigned = s3_client.generate_presigned_url(
                         'get_object',
-                        Params={'Bucket': os.environ.get("R2_BUCKET_NAME"), 'Key': file_key},
+                        Params={'Bucket': os.environ.get("R2_BUCKET_NAME"), 'Key': merged_file_key},
                         ExpiresIn=3600
                     )
                 except Exception as s3e:
@@ -110,7 +155,7 @@ def run_phase4():
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
                             arguments={
-                                "videoFilePath": url_presigned or url, # Pasando Presigned URL en vez de archivo local
+                                "videoFilePath": url_presigned, # Pasando Presigned URL en vez de archivo local
                                 "title": f"{title} #Shorts",
                                 "description": description,
                                 "categoryId": "22",
@@ -132,7 +177,7 @@ def run_phase4():
                             "TIKTOK_UPLOAD_VIDEO", 
                             user_id=USER_ID,
                             arguments={
-                                "file_to_upload": url_presigned or url, # Pasando Presigned URL en vez de archivo local
+                                "file_to_upload": url_presigned, # Pasando Presigned URL en vez de archivo local
                                 "caption": description,
                                 "privacy_level": "SELF_ONLY",
                                 "publish": True
@@ -218,8 +263,13 @@ def run_phase4():
                 aws_secret_access_key=os.environ.get("R2_SECRET_ACCESS_KEY"),
                 region_name='auto'
             )
-            s3.delete_object(Bucket=bucket, Key=file_key)
-            print("✅ MP4 borrado permanentemente del Bucket R2.")
+            for fd in files_data:
+                fk = fd.get("filename")
+                if fk:
+                    s3.delete_object(Bucket=bucket, Key=fk)
+            # Y borramos el merge
+            s3.delete_object(Bucket=bucket, Key=merged_file_key)
+            print("✅ Fragmentos y MP4 final borrados permanentemente del Bucket R2.")
         else:
             print("⚠️ Faltan credenciales de R2 en el entorno, se omite el borrado.")
     except Exception as e:

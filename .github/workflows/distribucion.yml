@@ -20,6 +20,7 @@ jobs:
       - name: Install Dependencies
         working-directory: ./novum-world-ai
         run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
           pip install -r requirements.txt
           pip install boto3 # Obligatorio para borrar el MP4 en Cloudflare R2
           
@@ -28,8 +29,7 @@ jobs:
         env:
           # Payload Dinámico desde el webhook de la PWA FrontEnd
           VIDEO_TITLE: ${{ github.event.client_payload.metadata.title }}
-          VIDEO_URL: ${{ github.event.client_payload.metadata.video_url }}
-          FILE_KEY: ${{ github.event.client_payload.metadata.file_key }}
+          VIDEO_FILES_JSON: ${{ toJson(github.event.client_payload.metadata.files) }}
           VIDEO_DESCRIPTION: ${{ github.event.client_payload.metadata.description }}
           VIDEO_HASHTAGS: ${{ github.event.client_payload.metadata.hashtags }}
           VIDEO_PRIVACY: ${{ github.event.client_payload.metadata.privacy }}
