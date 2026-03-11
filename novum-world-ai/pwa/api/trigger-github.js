@@ -42,9 +42,9 @@ module.exports = async (req, res) => {
                         dest_tiktok: destinations?.tiktok ? "true" : "false",
                         files: uploadedFiles,
 
-                        // Legacy compatibility if main_phase4 still expects single values
-                        video_url: uploadedFiles[0]?.publicUrl || "",
-                        file_key: uploadedFiles[0]?.filename || ""
+                        // Aseguramos distribuir únicamente el vídeo final montado si detectamos múltiples subidas en Batch Mode
+                        video_url: (uploadedFiles.find(f => f.filename.toLowerCase().includes('merged') || f.filename.toLowerCase().includes('final')) || uploadedFiles[0])?.publicUrl || "",
+                        file_key: (uploadedFiles.find(f => f.filename.toLowerCase().includes('merged') || f.filename.toLowerCase().includes('final')) || uploadedFiles[0])?.filename || ""
                     }
                 }
             })
