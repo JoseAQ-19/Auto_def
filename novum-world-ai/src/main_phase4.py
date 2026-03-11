@@ -99,6 +99,30 @@ def run_phase4():
             if file_size == 0:
                 raise ValueError("CRÍTICO: El merge de FFmpeg produjo un archivo de 0 bytes.")
 
+            try:
+                # Duración
+                dur_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", merged_local]
+                dur_out = subprocess.check_output(dur_cmd).decode('utf-8').strip()
+                duration_sec = float(dur_out)
+                print(f"⏱️ AUDITORÍA FFprobe: Duración exacta: {duration_sec} segundos.")
+                if duration_sec > 60.0:
+                    print("⚠️ WARNING CRÍTICO: El vídeo dura más de 60 segundos. YouTube Shorts lo rechazará con 'Procesamiento interrumpido' o lo subirá como vídeo normal.")
+
+                # Codec y Formato
+                codec_cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,profile,pix_fmt", "-of", "json", merged_local]
+                codec_out = subprocess.check_output(codec_cmd).decode('utf-8')
+                codec_json = json.loads(codec_out)
+                streams = codec_json.get("streams", [])
+                if streams:
+                    s = streams[0]
+                    print(f"🎥 AUDITORÍA FFprobe Codec: codec={s.get('codec_name')}, profile={s.get('profile')}, pix_fmt={s.get('pix_fmt')}")
+                    if s.get('pix_fmt') != 'yuv420p':
+                        print("⚠️ WARNING CRÍTICO: El pixel format NO es yuv420p. Esto suele causar 'Procesamiento interrumpido' en YouTube.")
+                else:
+                    print("⚠️ WARNING CRÍTICO: No se encontraron streams de video.")
+            except Exception as e:
+                print(f"⚠️ Error analizando duración/codec con ffprobe: {e}")
+
             print("☁️ Subiendo video_final_unido.mp4 a R2...")
             if s3:
                 s3.upload_file(merged_local, bucket, merged_file_key)
@@ -121,6 +145,10 @@ def run_phase4():
             try:
                 # Instantiate Composio client for v3
                 composio_client = Composio(api_key=compo_key)
+                # Intento forzar trazas detalladas (el flag puede variar o no existir,
+                # pero algunos SDKs lo aceptan o simplemente ignoran attr inexistentes)
+                if hasattr(composio_client, 'allow_tracing'):
+                    composio_client.allow_tracing = True
                 USER_ID = "pg-test-d66c07c1-fd23-44ca-ac8a-ae717ff90c50"
                 
                 # Generamos una única Presigned URL de 1 hora de validez para burlar el TTL de R2
@@ -151,19 +179,25 @@ def run_phase4():
                         print("🕵️♂️ Error extrayendo esquema:", e)
                     
                     try:
-                        composio_client.tools.execute(
+                        yt_args = {
+                            "videoFilePath": merged_local, # Pasando ruta local absoluta
+                            "title": f"{title} #Shorts",
+                            "description": description,
+                            "categoryId": "22",
+                            "tags": tags,
+                            "privacyStatus": privacy
+                        }
+                        print("🔥 DEBUG [YOUTUBE] Payload exacto a Composio:")
+                        print(json.dumps(yt_args, indent=2))
+
+                        yt_res = composio_client.tools.execute(
                             "YOUTUBE_UPLOAD_VIDEO",
                             user_id=USER_ID,
-                            arguments={
-                                "videoFilePath": url_presigned, # Pasando Presigned URL en vez de archivo local
-                                "title": f"{title} #Shorts",
-                                "description": description,
-                                "categoryId": "22",
-                                "tags": tags,
-                                "privacyStatus": privacy
-                            },
+                            arguments=yt_args,
                             dangerously_skip_version_check=True
                         )
+                        print("🔥 DEBUG [YOUTUBE] Respuesta cruda (raw) de Composio:")
+                        print(yt_res)
                     except Exception as ye:
                         print(f"⚠️ Error subiendo a YouTube: {ye}")
                 else:
