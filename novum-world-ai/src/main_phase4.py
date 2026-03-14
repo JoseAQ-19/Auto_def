@@ -82,38 +82,66 @@ def run_phase4():
 
     merged_local = "/tmp/video_final_unido.mp4"
     merged_file_key = "video_final_unido.mp4"
-    if download_success and files_data:
-        print("🎬 Ejecutando FFmpeg merge local...")
+    outro_path = "novum-world-ai/assets/outro_novum.mp4"
+
+    if download_success and downloaded_paths:
+        print(f"🎬 Iniciando FFmpeg Master Render (Escenas: {len(downloaded_paths)} + Outro)...")
         try:
-            cmd = [
-                "ffmpeg", "-f", "concat", "-safe", "0", "-i", lista_path,
-                "-c:v", "libx264", "-preset", "fast", "-profile:v", "main",
-                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
-                "-movflags", "+faststart", "-y", merged_local
-            ]
+            # 1. Construimos el comando dinámico de FFmpeg usando Filter Complex
+            # Esto es necesario para estandarizar resoluciones, fps y audio de clips heterogéneos
+            cmd = ["ffmpeg"]
+            
+            # Entradas: Escenas + Outro
+            for p in downloaded_paths:
+                cmd.extend(["-i", p])
+            cmd.extend(["-i", outro_path])
+            
+            # Construcción del filtro complejo
+            # [v][a] estandarizados -> concat
+            filter_str = ""
+            n_inputs = len(downloaded_paths) + 1
+            for i in range(n_inputs):
+                # Escalado a 1080x1920 (Portrait), forzando aspect ratio y rellenando si es necesario (pad)
+                # Estandarizamos a 30fps y audio a 44.1kHz
+                filter_str += (
+                    f"[{i}:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
+                    f"pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p[v{i}]; "
+                    f"[{i}:a]aformat=sample_rates=44100:channel_layouts=stereo[a{i}]; "
+                )
+            
+            # Concatenación de todos los pares [v][a]
+            inputs_concat = "".join([f"[v{i}][a{i}]" for i in range(n_inputs)])
+            filter_str += f"{inputs_concat}concat=n={n_inputs}:v=1:a=1[v_out][a_out]"
+            
+            cmd.extend([
+                "-filter_complex", filter_str,
+                "-map", "[v_out]", "-map", "[a_out]",
+                "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-profile:v", "main",
+                "-c:a", "aac", "-b:a", "128k",
+                "-movflags", "+faststart",
+                "-t", "59.5", # Límite de seguridad estricto para YouTube Shorts
+                "-y", merged_local
+            ])
+            
+            print(f"🛠️ Ejecutando comando FFmpeg complejo...")
             subprocess.run(cmd, check=True)
-            print("✅ FFmpeg merge exitoso.")
+            print("✅ FFmpeg Master Render exitoso.")
             
             file_size = os.path.getsize(merged_local)
             print(f"🔍 AUDITORÍA FFmpeg: El archivo {merged_local} pesa {file_size} bytes.")
-            if file_size == 0:
-                raise ValueError("CRÍTICO: El merge de FFmpeg produjo un archivo de 0 bytes.")
-                
+            
             try:
                 cmd_ffprobe = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", merged_local]
                 duration_str = subprocess.check_output(cmd_ffprobe, text=True).strip()
-                print(f"🔍 AUDITORÍA FFmpeg: Duración exacta del video: {duration_str} segundos")
-                if float(duration_str) > 60.0:
-                    print("⚠️ ALERTA: La duración supera 60.0 segundos. YouTube Shorts cortará o rechazará el procesamiento.")
+                print(f"🔍 AUDITORÍA FINAL: Duración del video ensamblado: {duration_str} segundos")
             except Exception as e_probe:
-                print(f"⚠️ Error intentando leer duración con ffprobe: {e_probe}")
+                print(f"⚠️ Error verificando duración final: {e_probe}")
 
-            print("☁️ Subiendo video_final_unido.mp4 a R2...")
+            print("☁️ Subiendo Master Render a R2...")
             if s3:
                 s3.upload_file(merged_local, bucket, merged_file_key)
                 print("✅ Subida exitosa a R2.")
             else:
-                print("⚠️ Faltan credenciales S3, no subimos a R2.")
                 download_success = False
         except Exception as e:
             print(f"❌ Error crítico en FFmpeg o subida R2: {e}")
