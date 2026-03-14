@@ -57,7 +57,9 @@ def generate_novum_prompt(topic: str) -> str:
         "Guion imágenes\n"
         "(Un prompt en INGLÉS por cada escena. Describe entorno cyberpunk, acción y cámara).\n\n"
         "REGLAS TÉCNICAS PARA IMÁGENES:\n"
-        "- REGLA DE AUTO-MATCH: PROHIBIDO describir rostros o ropa detallada. Usa los nombres clave 'novum' o 'mrbeast'.\n"
+        "- MENCIONES, NO DESCRIPCIONES: El software 'AutoGrok' detecta automáticamente a los personajes. PROHIBIDO describir rostros, ropa, pelo o rasgos físicos. Menciona solo el nombre.\n"
+        "- PERSONAJES PERMITIDOS: Usa siempre 'novum' como protagonista. Si la noticia lo requiere, puedes incluir personajes famosos reales (ej: 'elon musk', 'donald trump', 'sam altman') tratándolos solo por su nombre.\n"
+        "- REGLA DE ORO DE AUTO-MATCH: Solo nombre exacto del personaje + acción. (Ej: 'novum hacking a server' o 'elon musk laughing in mars').\n"
         "- Separa cada prompt de imagen con una línea en blanco.\n"
         "- Prompts visuales en INGLÉS, diálogos en ESPAÑOL."
     )
