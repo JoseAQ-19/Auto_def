@@ -1,5 +1,6 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const crypto = require("crypto");
 
 module.exports = async (req, res) => {
     // 0. Only POST method allowed
@@ -10,7 +11,15 @@ module.exports = async (req, res) => {
     const { auth, files } = req.body;
 
     // 1. Check Master Password
-    if (auth !== process.env.PWA_MASTER_PASSWORD) {
+    const masterPassword = process.env.PWA_MASTER_PASSWORD || "";
+    const providedPassword = auth || "";
+    const masterBuffer = Buffer.from(masterPassword);
+    const providedBuffer = Buffer.from(providedPassword);
+
+    if (
+        masterBuffer.length !== providedBuffer.length ||
+        !crypto.timingSafeEqual(masterBuffer, providedBuffer)
+    ) {
         return res.status(401).json({ message: "Acceso Intruso Denegado." });
     }
 

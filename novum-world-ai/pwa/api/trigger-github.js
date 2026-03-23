@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 module.exports = async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Metodo no soportado" });
@@ -6,7 +8,15 @@ module.exports = async (req, res) => {
     const { auth, type, title, description, hashtags, privacy, destinations, uploadedFiles } = req.body;
 
     // 1. Validar password
-    if (auth !== process.env.PWA_MASTER_PASSWORD) {
+    const masterPassword = process.env.PWA_MASTER_PASSWORD || "";
+    const providedPassword = auth || "";
+    const masterBuffer = Buffer.from(masterPassword);
+    const providedBuffer = Buffer.from(providedPassword);
+
+    if (
+        masterBuffer.length !== providedBuffer.length ||
+        !crypto.timingSafeEqual(masterBuffer, providedBuffer)
+    ) {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
